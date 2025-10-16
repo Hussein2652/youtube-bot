@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  youtube-bot:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      - DATA_DIR=/data
+      - ASSETS_DIR=/app/assets
+      - MIN_QUEUE=${MIN_QUEUE:-6}
+      - DAILY_TARGET_MIN=${DAILY_TARGET_MIN:-10}
+      - DAILY_TARGET_MAX=${DAILY_TARGET_MAX:-20}
+      - FFMPEG_BIN=ffmpeg
+      - PIPER_BIN=${PIPER_BIN:-}
+      - TTS_VOICE=${TTS_VOICE:-}
+      - SD_CMD=${SD_CMD:-}
+      - LLM_CMD=${LLM_CMD:-}
+      - YOUTUBE_UPLOADER_CMD=${YOUTUBE_UPLOADER_CMD:-}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY:-}
+      - YOUTUBE_CHANNEL_ID=${YOUTUBE_CHANNEL_ID:-}
+    volumes:
+      - ./data:/data
+      - ./assets:/app/assets
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    command: ["python", "bot_main.py"]
+
