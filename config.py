@@ -18,11 +18,17 @@ class Config:
     tts_voice: Optional[str]
 
     sd_cmd: Optional[str]
+    sd_bg_cmd: Optional[str]
+    sd_thumb_cmd: Optional[str]
     llm_cmd: Optional[str]
 
     uploader_cmd: Optional[str]
     yt_api_key: Optional[str]
     yt_channel_id: Optional[str]
+
+    embeddings_backend: str
+    embeddings_model_path: Optional[str]
+    music_dir: Optional[str]
 
     def ensure_dirs(self) -> None:
         for d in [
@@ -58,12 +64,16 @@ def load_config() -> Config:
         ffmpeg_bin=os.getenv('FFMPEG_BIN', 'ffmpeg').strip(),
         piper_bin=(os.getenv('PIPER_BIN') or '').strip() or None,
         tts_voice=(os.getenv('TTS_VOICE') or '').strip() or None,
-        sd_cmd=(os.getenv('SD_CMD') or '').strip() or None,
+        sd_cmd=(os.getenv('SD_CMD') or '').strip() or None,  # legacy
+        sd_bg_cmd=(os.getenv('SD_BG_CMD') or os.getenv('SD_CMD') or '').strip() or None,
+        sd_thumb_cmd=(os.getenv('SD_THUMB_CMD') or '').strip() or None,
         llm_cmd=(os.getenv('LLM_CMD') or '').strip() or None,
         uploader_cmd=(os.getenv('YOUTUBE_UPLOADER_CMD') or '').strip() or None,
         yt_api_key=(os.getenv('YOUTUBE_API_KEY') or '').strip() or None,
         yt_channel_id=(os.getenv('YOUTUBE_CHANNEL_ID') or '').strip() or None,
+        embeddings_backend=(os.getenv('EMBEDDINGS_BACKEND') or 'hash').strip(),
+        embeddings_model_path=(os.getenv('EMBEDDINGS_MODEL_PATH') or '').strip() or None,
+        music_dir=(os.getenv('MUSIC_DIR') or '').strip() or None,
     )
     cfg.ensure_dirs()
     return cfg
-

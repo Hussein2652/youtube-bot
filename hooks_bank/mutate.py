@@ -1,7 +1,9 @@
 import json
 import shlex
 import subprocess
+import hashlib
 from typing import Dict, List, Optional
+from state import has_hash, add_hash
 
 
 def should_wake_llm(queue_size: int, min_queue: int) -> bool:
@@ -15,16 +17,40 @@ def _local_mutate_rules(text: str) -> str:
     if t.endswith(':'):
         t = t[:-1]
     t = t.replace('everyone', 'most people').replace('No one', 'Almost no one')
-    if not t.lower().startswith('watch'):
-        t = 'Watch this: ' + t
-    return t
+    # Keep it short (<= 12 words), change some nouns/verbs simplisticly
+    repl = {
+        'hack': 'tactic', 'tips': 'moves', 'truth': 'signal', 'wrong': 'off', 'stop': 'ditch',
+        'improve': 'level-up', 'study': 'data', 'told': 'revealed', 'fastest': 'quickest'
+    }
+    words = t.split()
+    new = []
+    for w in words:
+        key = w.lower().strip(':,!.?')
+        new.append(repl.get(key, w))
+        if len(new) >= 12:
+            break
+    s = ' '.join(new)
+    if not s.lower().startswith('watch'):
+        s = 'Watch: ' + s
+    return s
 
 
 def _try_llm_call(cmd: Optional[str], topic: str, hooks: List[Dict]) -> Optional[List[str]]:
     if not cmd:
         return None
     try:
-        payload = json.dumps({'topic': topic, 'hooks': [h['raw_text'] for h in hooks]}, ensure_ascii=False)
+        prompt = {
+            'topic': topic,
+            'constraints': {
+                'preserve_emotion': True,
+                'preserve_structure': True,
+                'change_nouns_verbs': True,
+                'max_words': 12,
+                'no_duplicates': True
+            },
+            'hooks': [h['raw_text'] for h in hooks]
+        }
+        payload = json.dumps(prompt, ensure_ascii=False)
         proc = subprocess.run(
             shlex.split(cmd),
             input=payload.encode('utf-8'),
@@ -43,7 +69,11 @@ def _try_llm_call(cmd: Optional[str], topic: str, hooks: List[Dict]) -> Optional
         return None
 
 
-def mutate_hooks(topic: str, hooks: List[Dict], llm_cmd: Optional[str], allow_llm: bool, limit: int = 10) -> Dict:
+def _norm_hash(s: str) -> str:
+    return hashlib.sha256(' '.join(s.lower().split()).encode('utf-8')).hexdigest()
+
+
+def mutate_hooks(topic: str, hooks: List[Dict], llm_cmd: Optional[str], allow_llm: bool, limit: int = 10, *, data_dir: Optional[str] = None) -> Dict:
     selected = hooks[:limit]
     mutated_texts: Optional[List[str]] = None
     llm_called = False
@@ -54,12 +84,25 @@ def mutate_hooks(topic: str, hooks: List[Dict], llm_cmd: Optional[str], allow_ll
     if not mutated_texts:
         mutated_texts = [_local_mutate_rules(h['raw_text']) for h in selected]
 
+    seed_set = set(h['raw_text'].strip().lower() for h in selected)
+    seen_hashes = set()
     mutated = []
     for i, h in enumerate(selected):
-        mutated.append({
-            **h,
-            'mutated_text': mutated_texts[i] if i < len(mutated_texts) else _local_mutate_rules(h['raw_text']),
-        })
+        cand = mutated_texts[i] if i < len(mutated_texts) else _local_mutate_rules(h['raw_text'])
+        # enforce <=12 words
+        cand = ' '.join(cand.split()[:12])
+        nh = _norm_hash(cand)
+        # dedupe vs seeds and prior hash set
+        if cand.strip().lower() in seed_set:
+            continue
+        if data_dir and has_hash(data_dir, nh):
+            continue
+        if nh in seen_hashes:
+            continue
+        seen_hashes.add(nh)
+        if data_dir:
+            add_hash(data_dir, nh)
+        mutated.append({**h, 'mutated_text': cand})
     return {
         'ok': True,
         'topic': topic,
@@ -67,4 +110,3 @@ def mutate_hooks(topic: str, hooks: List[Dict], llm_cmd: Optional[str], allow_ll
         'llm_called': llm_called,
         'count': len(mutated),
     }
-

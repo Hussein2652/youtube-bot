@@ -37,7 +37,7 @@ def main() -> None:
     current_topic = topics[0]
 
     # 4) Filter top-K hooks for topic
-    rh = rank_hooks_for_topic(current_topic, hooks, top_k=30)
+    rh = rank_hooks_for_topic(current_topic, hooks, top_k=30, data_dir=cfg.data_dir, embeddings_backend=cfg.embeddings_backend, embeddings_model_path=cfg.embeddings_model_path)
     top_hooks = rh['top_hooks']
     for h in top_hooks:
         insert_hook(conn, topic_ids[current_topic], h['raw_text'], h.get('source_url'), h.get('score'))
@@ -45,16 +45,31 @@ def main() -> None:
     # 5) Decide whether to wake LLM (gated by queue size)
     qsize = get_queue_size(conn)
     allow_llm = should_wake_llm(qsize, cfg.min_queue)
-    mut = mutate_hooks(current_topic, top_hooks, cfg.llm_cmd, allow_llm, limit=10)
+    mut = mutate_hooks(current_topic, top_hooks, cfg.llm_cmd, allow_llm, limit=10, data_dir=cfg.data_dir)
     log(f"Mutated hooks: {mut['count']} (llm_called={mut['llm_called']})")
 
     # 6) Finalize micro-script
     fin = finalize_micro_script(current_topic, mut['mutated'])
     log(f"Script: {fin['words']} words, ~{fin['duration_sec']:.1f}s")
-    script_id = insert_script(conn, topic_ids[current_topic], fin['script_text'], fin['words'], fin['duration_sec'], fin)
+    # Store emotion from first mutated hook if present
+    meta = {**fin}
+    if mut['mutated']:
+        meta['emotion'] = mut['mutated'][0].get('emotion')
+    script_id = insert_script(conn, topic_ids[current_topic], fin['script_text'], fin['words'], fin['duration_sec'], meta)
 
     # 7) Generate short (voice + visuals + captions)
-    gen = generate_short(cfg.ffmpeg_bin, cfg.piper_bin or '', cfg.tts_voice or '', cfg.data_dir, fin['script_text'], fin['duration_sec'])
+    gen = generate_short(
+        cfg.ffmpeg_bin,
+        cfg.piper_bin or '',
+        cfg.tts_voice or '',
+        cfg.data_dir,
+        fin['script_text'],
+        fin['duration_sec'],
+        segments=fin.get('segments'),
+        music_dir=cfg.music_dir,
+        sd_bg_cmd=cfg.sd_bg_cmd,
+        sd_thumb_cmd=cfg.sd_thumb_cmd,
+    )
     if not gen.get('ok'):
         log(f"Generation failed: {gen}")
         return
@@ -80,4 +95,3 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-

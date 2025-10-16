@@ -1,6 +1,7 @@
 import json
 from typing import Any, Dict, List, Optional
 import sqlite3
+import hashlib
 
 
 def upsert_topic(conn: sqlite3.Connection, name: str, weight: float = 1.0) -> int:
@@ -23,30 +24,46 @@ def insert_hook(conn: sqlite3.Connection, topic_id: int, raw_text: str, source_u
 
 
 def insert_script(conn: sqlite3.Connection, topic_id: int, text: str, words: int, duration_sec: float, metadata: Dict[str, Any]) -> int:
+    sh = hashlib.sha256(' '.join(text.lower().split()).encode('utf-8')).hexdigest()
+    # idempotent insert
+    cur = conn.execute("SELECT id FROM scripts WHERE script_hash=?", (sh,))
+    row = cur.fetchone()
+    if row:
+        return int(row[0])
     cur = conn.execute(
-        "INSERT INTO scripts(topic_id, text, words, duration_sec, metadata_json) VALUES(?,?,?,?,?)",
-        (topic_id, text, words, duration_sec, json.dumps(metadata)),
+        "INSERT INTO scripts(topic_id, text, words, duration_sec, metadata_json, script_hash) VALUES(?,?,?,?,?,?)",
+        (topic_id, text, words, duration_sec, json.dumps(metadata), sh),
     )
     conn.commit()
-    return cur.lastrowid
+    return int(cur.lastrowid)
 
 
 def insert_video(conn: sqlite3.Connection, script_id: int, video_path: str, thumb_path: str, duration_sec: float, status: str = 'ready') -> int:
+    vh = hashlib.sha256((video_path + '|' + thumb_path).encode('utf-8')).hexdigest()
+    cur = conn.execute("SELECT id FROM videos WHERE video_hash=?", (vh,))
+    row = cur.fetchone()
+    if row:
+        return int(row[0])
     cur = conn.execute(
-        "INSERT INTO videos(script_id, video_path, thumb_path, duration_sec, status) VALUES(?,?,?,?,?)",
-        (script_id, video_path, thumb_path, duration_sec, status),
+        "INSERT INTO videos(script_id, video_path, thumb_path, duration_sec, status, video_hash) VALUES(?,?,?,?,?,?)",
+        (script_id, video_path, thumb_path, duration_sec, status, vh),
     )
     conn.commit()
-    return cur.lastrowid
+    return int(cur.lastrowid)
 
 
 def enqueue_video(conn: sqlite3.Connection, video_id: int, scheduled_for: str, platform: str = 'youtube', status: str = 'pending') -> int:
+    # idempotent: avoid duplicate entries at same scheduled time
+    cur = conn.execute("SELECT id FROM queue WHERE video_id=? AND scheduled_for=?", (video_id, scheduled_for))
+    row = cur.fetchone()
+    if row:
+        return int(row[0])
     cur = conn.execute(
         "INSERT INTO queue(video_id, scheduled_for, status, platform) VALUES(?,?,?,?)",
         (video_id, scheduled_for, status, platform),
     )
     conn.commit()
-    return cur.lastrowid
+    return int(cur.lastrowid)
 
 
 def mark_video_status(conn: sqlite3.Connection, video_id: int, status: str) -> None:
@@ -81,4 +98,3 @@ def recent_analytics_age_hours(conn: sqlite3.Connection) -> Optional[float]:
     )
     row = cur.fetchone()
     return float(row[0]) if row and row[0] is not None else None
-

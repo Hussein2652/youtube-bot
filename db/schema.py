@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS scripts (
   words INTEGER NOT NULL,
   duration_sec REAL NOT NULL,
   metadata_json TEXT,
+  script_hash TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(topic_id) REFERENCES topics(id)
 );
@@ -35,6 +36,11 @@ CREATE TABLE IF NOT EXISTS videos (
   video_path TEXT NOT NULL,
   thumb_path TEXT NOT NULL,
   duration_sec REAL NOT NULL,
+  title TEXT,
+  description TEXT,
+  video_hash TEXT,
+  platform_video_id TEXT,
+  uploaded_at TIMESTAMP,
   status TEXT NOT NULL DEFAULT 'ready', -- ready, scheduled, uploaded, failed
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(script_id) REFERENCES scripts(id)
@@ -46,6 +52,8 @@ CREATE TABLE IF NOT EXISTS queue (
   scheduled_for TIMESTAMP NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending', -- pending, scheduled, uploading, uploaded, failed
   platform TEXT NOT NULL DEFAULT 'youtube',
+  attempt_count INTEGER NOT NULL DEFAULT 0,
+  backoff_until TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(video_id) REFERENCES videos(id)
 );
@@ -60,4 +68,3 @@ CREATE TABLE IF NOT EXISTS analytics (
   FOREIGN KEY(video_id) REFERENCES videos(id)
 );
 """
-

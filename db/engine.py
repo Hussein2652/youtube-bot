@@ -2,6 +2,7 @@ import os
 import sqlite3
 from typing import Any, Dict, Iterable, Optional
 from .schema import SCHEMA_SQL
+from .migrations import run_migrations
 
 
 _conn: Optional[sqlite3.Connection] = None
@@ -21,6 +22,7 @@ def get_conn(db_path: str) -> sqlite3.Connection:
 def init_db(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA_SQL)
     conn.commit()
+    run_migrations(conn)
 
 
 def execute(conn: sqlite3.Connection, sql: str, params: Iterable[Any] = ()) -> int:
@@ -43,4 +45,3 @@ def query_one(conn: sqlite3.Connection, sql: str, params: Iterable[Any] = ()):
 def get_queue_size(conn: sqlite3.Connection) -> int:
     row = query_one(conn, "SELECT COUNT(1) AS c FROM queue WHERE status IN ('pending','scheduled','ready')")
     return int(row['c']) if row else 0
-
