@@ -17,6 +17,7 @@ What’s New (pre-scale gaps closed)
 - Uploader: exponential backoff; store `platform_video_id` and timestamps; set `ready` when not uploaded.
 - Analytics: 48h-after publish pull stub; compute score and update `assets/bias.json` (emotion + n‑gram weights) to bias next runs.
 - Idempotency: unique hashes for scripts/videos, safe enqueues, persistent `data/bot.db` + `data/state.json`.
+- Tools: `tools/uploader_cli.py` for resumable uploads (thumbnail support) and `tools/analytics_cli.py` for post-48h metrics (impressions, CTR, avg view %, likes).
 
 Quick Start
 1) Copy `.env.example` to `.env` and adjust values.
@@ -38,7 +39,10 @@ Key Env Vars
 - YOUTUBE_API_KEY, YOUTUBE_CHANNEL_ID (if using native API client)
 - EMBEDDINGS_BACKEND: `hash` (default) or `onnx` (requires local onnxruntime + compatible model wrapper)
 - EMBEDDINGS_MODEL_PATH: local .onnx path (optional)
+- EMBEDDINGS_TOKENIZER_PATH: tokenizer.json for the ONNX model (required when backend=onnx)
 - MUSIC_DIR: folder with background music to mix (default: assets/music)
+- MINER_CACHE_TTL_SEC / MINER_RATE_PER_KEY_SEC / MINER_SOURCE_GLOB: hook miner controls (cache + rate limit)
+- ANALYTICS_CMD: command to pull analytics (defaults to `python tools/analytics_cli.py ...`)
 
 Data Layout
 - `data/bot.db` — SQLite DB
@@ -50,6 +54,8 @@ Data Layout
 - `assets/bias.json` — emotion/ngram weights updated by analytics
 - `assets/sources/` — drop your local scrapes here (miners read these)
 - `assets/music/` — optional background music files
+- `tools/uploader_cli.py` — resumable upload helper (OAuth required)
+- `tools/analytics_cli.py` — metrics fetcher (YT Analytics API)
 
 Supervisor Loop (bot_main.py)
 - Discovers topics → mines hooks → filters relevant hooks → (conditionally) mutates via LLM → finalizes micro-script → generates short.mp4 + thumb.png → schedules jobs → optionally uploads pending jobs.
@@ -58,4 +64,6 @@ Supervisor Loop (bot_main.py)
 Notes
 - LLM is never called unless `queue_size < MIN_QUEUE`.
 - If Piper/SD not configured, generator falls back to deterministic ffmpeg (solid background + text overlay + silent/tts audio) to keep pipeline functional.
- - Scheduler defaults to Cairo timezone; adjust cadence in `schedule_manager/scheduler.py` if needed.
+- Scheduler defaults to Cairo timezone; adjust cadence in `schedule_manager/scheduler.py` if needed.
+- Run `python tools/uploader_cli.py --help` to configure Youtube OAuth uploads (set `YOUTUBE_CLIENT_SECRETS_FILE`, optional `YOUTUBE_TOKEN_FILE`). Wire `YOUTUBE_UPLOADER_CMD="python tools/uploader_cli.py"`.
+- Run `python tools/analytics_cli.py --help` to configure analytics pulls; point `ANALYTICS_CMD` at the script.

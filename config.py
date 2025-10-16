@@ -28,7 +28,12 @@ class Config:
 
     embeddings_backend: str
     embeddings_model_path: Optional[str]
+    embeddings_tokenizer_path: Optional[str]
     music_dir: Optional[str]
+    miner_cache_ttl: int
+    miner_rate_limit: int
+    miner_source_glob: str
+    analytics_cmd: Optional[str]
 
     def ensure_dirs(self) -> None:
         for d in [
@@ -73,7 +78,12 @@ def load_config() -> Config:
         yt_channel_id=(os.getenv('YOUTUBE_CHANNEL_ID') or '').strip() or None,
         embeddings_backend=(os.getenv('EMBEDDINGS_BACKEND') or 'hash').strip(),
         embeddings_model_path=(os.getenv('EMBEDDINGS_MODEL_PATH') or '').strip() or None,
+        embeddings_tokenizer_path=(os.getenv('EMBEDDINGS_TOKENIZER_PATH') or '').strip() or None,
         music_dir=(os.getenv('MUSIC_DIR') or '').strip() or None,
+        miner_cache_ttl=getenv_int('MINER_CACHE_TTL_SEC', 6 * 3600),
+        miner_rate_limit=getenv_int('MINER_RATE_PER_KEY_SEC', 5),
+        miner_source_glob=(os.getenv('MINER_SOURCE_GLOB') or 'assets/sources/*').strip(),
+        analytics_cmd=(os.getenv('ANALYTICS_CMD') or '').strip() or None,
     )
     cfg.ensure_dirs()
     return cfg

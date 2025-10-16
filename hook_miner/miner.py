@@ -1,8 +1,15 @@
+import glob
 import os
 import random
-from typing import Dict, List, Optional
+from typing import Dict, List
+
 from utils import write_json, read_json, ensure_dir, log
-from .sources import LocalFileAdapter, collect_from_adapters
+from .sources import (
+    YouTubeShortsAdapter,
+    RedditAdapter,
+    TikTokAdapter,
+    collect_from_adapters,
+)
 
 
 def _seed_topics_path(data_dir: str) -> str:
@@ -34,19 +41,32 @@ def discover_topics(data_dir: str, max_topics: int = 5) -> Dict:
     }
 
 
-def mine_hooks(data_dir: str, topics: List[str], per_topic: int = 200) -> Dict:
-    # Collect from local adapters (files) to stay offline; user can drop their scrapes under assets/sources/
-    ensure_dir(os.path.join(data_dir, 'cache', 'miner'))
-    adapters = []
-    # Example expected files: assets/sources/youtube_shorts.json, assets/sources/reddit.ndjson
-    for p in [
-        os.path.join('assets', 'sources', 'youtube_shorts.json'),
-        os.path.join('assets', 'sources', 'reddit.ndjson'),
-        os.path.join('assets', 'sources', 'tiktok.ndjson'),
-    ]:
-        adapters.append(LocalFileAdapter(p))
+def _adapter_for_path(path: str):
+    lower = path.lower()
+    if lower.endswith('.jsonl') or lower.endswith('.ndjson'):
+        if 'youtube' in lower or 'short' in lower:
+            return YouTubeShortsAdapter(path)
+    if lower.endswith('.json'):
+        if 'reddit' in lower:
+            return RedditAdapter(path)
+        if 'tiktok' in lower:
+            return TikTokAdapter(path)
+        if 'youtube' in lower or 'short' in lower:
+            return YouTubeShortsAdapter(path)
+    return None
 
-    items = collect_from_adapters(adapters, data_dir, cache_ttl=6 * 3600)
+
+def mine_hooks(data_dir: str, topics: List[str], *, per_topic: int = 200, source_glob: str = 'assets/sources/*', cache_ttl: int = 6 * 3600, rate_limit: int = 5) -> Dict:
+    ensure_dir(os.path.join(data_dir, 'cache', 'miner'))
+    ensure_dir(os.path.join('assets', 'sources'))
+
+    adapters = []
+    for path in glob.glob(source_glob):
+        adapter = _adapter_for_path(path)
+        if adapter:
+            adapters.append(adapter)
+
+    items = collect_from_adapters(adapters, data_dir, cache_ttl=cache_ttl, rate_limit=rate_limit) if adapters else []
     hooks: List[Dict] = []
     for it in items:
         text = it.get('text', '')
@@ -60,6 +80,7 @@ def mine_hooks(data_dir: str, topics: List[str], per_topic: int = 200) -> Dict:
                     'score': float(it.get('views') or 0.0),
                     'emotion': it.get('emotion'),
                     'duration': float(it.get('duration') or 0.0),
+                    'source': it.get('source'),
                 })
                 break
 
@@ -85,6 +106,7 @@ def mine_hooks(data_dir: str, topics: List[str], per_topic: int = 200) -> Dict:
                     'score': 0.0,
                     'emotion': None,
                     'duration': 5.0,
+                    'source': 'synthetic',
                 })
 
     path = os.path.join(data_dir, 'hooks_dataset.json')

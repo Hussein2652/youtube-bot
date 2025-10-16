@@ -48,7 +48,14 @@ def _try_llm_call(cmd: Optional[str], topic: str, hooks: List[Dict]) -> Optional
                 'max_words': 12,
                 'no_duplicates': True
             },
-            'hooks': [h['raw_text'] for h in hooks]
+            'hooks': [
+                {
+                    'text': h['raw_text'],
+                    'emotion': h.get('emotion'),
+                    'source': h.get('source'),
+                }
+                for h in hooks
+            ]
         }
         payload = json.dumps(prompt, ensure_ascii=False)
         proc = subprocess.run(
@@ -95,13 +102,13 @@ def mutate_hooks(topic: str, hooks: List[Dict], llm_cmd: Optional[str], allow_ll
         # dedupe vs seeds and prior hash set
         if cand.strip().lower() in seed_set:
             continue
-        if data_dir and has_hash(data_dir, nh):
+        if data_dir and has_hash(data_dir, nh, topic=topic):
             continue
         if nh in seen_hashes:
             continue
         seen_hashes.add(nh)
         if data_dir:
-            add_hash(data_dir, nh)
+            add_hash(data_dir, nh, topic=topic)
         mutated.append({**h, 'mutated_text': cand})
     return {
         'ok': True,

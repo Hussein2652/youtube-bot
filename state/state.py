@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict
+from typing import Dict, Optional
 
 
 def _path(data_dir: str) -> str:
@@ -22,16 +22,31 @@ def save_state(data_dir: str, state: Dict) -> None:
         json.dump(state, f, ensure_ascii=False, indent=2)
 
 
-def add_hash(data_dir: str, h: str) -> None:
+def add_hash(data_dir: str, h: str, topic: Optional[str] = None) -> None:
     st = load_state(data_dir)
     hs = set(st.get('hashes') or [])
+    updated = False
     if h not in hs:
         hs.add(h)
         st['hashes'] = list(hs)
+        updated = True
+    if topic:
+        topic_map = st.setdefault('topic_hashes', {})
+        topic_list = set(topic_map.get(topic, []))
+        if h not in topic_list:
+            topic_list.add(h)
+            topic_map[topic] = list(topic_list)
+            updated = True
+    if updated:
         save_state(data_dir, st)
 
 
-def has_hash(data_dir: str, h: str) -> bool:
+def has_hash(data_dir: str, h: str, topic: Optional[str] = None) -> bool:
     st = load_state(data_dir)
-    return h in set(st.get('hashes') or [])
-
+    if h in set(st.get('hashes') or []):
+        return True
+    if topic:
+        topic_map = st.get('topic_hashes') or {}
+        if h in set(topic_map.get(topic, []) or []):
+            return True
+    return False

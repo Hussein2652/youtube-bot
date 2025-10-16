@@ -34,9 +34,22 @@ def _load_bias(path: str) -> Dict:
     return b
 
 
-def rank_hooks_for_topic(topic: str, hooks: List[Dict], top_k: int = 20, *, data_dir: Optional[str] = None, embeddings_backend: str = 'hash', embeddings_model_path: Optional[str] = None) -> Dict:
+def rank_hooks_for_topic(
+    topic: str,
+    hooks: List[Dict],
+    top_k: int = 20,
+    *,
+    data_dir: Optional[str] = None,
+    embeddings_backend: str = 'hash',
+    embeddings_model_path: Optional[str] = None,
+    embeddings_tokenizer_path: Optional[str] = None,
+) -> Dict:
     # Embedding-based relevance with bias
-    em = EmbeddingModel(backend=embeddings_backend, model_path=embeddings_model_path)
+    em = EmbeddingModel(
+        backend=embeddings_backend,
+        model_path=embeddings_model_path,
+        tokenizer_path=embeddings_tokenizer_path,
+    )
     topic_vec = em.embed([topic])[0]
     texts = [h['raw_text'] for h in hooks]
     hook_vecs = em.embed(texts)

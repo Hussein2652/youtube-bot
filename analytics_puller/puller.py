@@ -1,13 +1,14 @@
 import json
 import os
-from typing import Dict
+import subprocess
+from datetime import datetime, timedelta
+from typing import Dict, Optional
 
 
 def _eligible_videos(conn):
-    # Uploaded at least 48h ago and no analytics yet
     cur = conn.execute(
         """
-        SELECT v.id, v.platform_video_id
+        SELECT v.id, v.platform_video_id, v.uploaded_at
         FROM videos v
         WHERE v.status='uploaded' AND v.uploaded_at IS NOT NULL
           AND (julianday('now') - julianday(v.uploaded_at)) * 24.0 >= 48.0
@@ -16,12 +17,25 @@ def _eligible_videos(conn):
         LIMIT 50
         """
     )
-    return [dict(id=int(r[0]), platform_video_id=r[1]) for r in cur.fetchall()]
+    return [dict(id=int(r[0]), platform_video_id=r[1], uploaded_at=r[2]) for r in cur.fetchall()]
 
 
-def _pull_metrics_for(video_id: str) -> Dict:
-    # Placeholder: return typical baseline numbers; integrate your local YT client here.
-    return {'impressions': 10000, 'ctr': 0.08, 'avg_view': 0.82, 'like_rate': 0.04}
+def _call_analytics(cmd: str, video_id: str, start_date: str, end_date: str) -> Optional[Dict]:
+    full_cmd = f"{cmd} --video-id {video_id} --start-date {start_date} --end-date {end_date}"
+    proc = subprocess.run(full_cmd, shell=True, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if proc.returncode != 0:
+        return None
+    try:
+        payload = proc.stdout.decode('utf-8').strip()
+        return json.loads(payload)
+    except Exception:
+        return None
+
+
+def _calculate_like_rate(likes: float, impressions: float) -> float:
+    if impressions <= 0:
+        return 0.0
+    return likes / impressions
 
 
 def _update_bias(conn, bias_path: str) -> Dict:
@@ -63,14 +77,32 @@ def _update_bias(conn, bias_path: str) -> Dict:
     return {'ok': True, 'updated': len(bias['emotion_weights']) + len(bias['ngram_weights'])}
 
 
-def pull_and_record(conn) -> Dict:
+def pull_and_record(conn, analytics_cmd: Optional[str] = None) -> Dict:
     vids = _eligible_videos(conn)
     count = 0
     for v in vids:
-        m = _pull_metrics_for(v['platform_video_id'] or '')
+        if not v['platform_video_id']:
+            continue
+        metrics = {'impressions': 1000, 'ctr': 0.08, 'avg_view': 0.8, 'like_rate': 0.04}
+        if analytics_cmd:
+            uploaded_at = datetime.fromisoformat(v['uploaded_at'])
+            start_date = uploaded_at.date().isoformat()
+            end_date = (uploaded_at + timedelta(days=3)).date().isoformat()
+            res = _call_analytics(analytics_cmd, v['platform_video_id'], start_date, end_date) or {}
+            impressions = float(res.get('impressions', metrics['impressions']))
+            ctr = float(res.get('ctr', metrics['ctr']))
+            avg_view_pct = float(res.get('avg_view_percent', metrics['avg_view'] * 100.0)) / 100.0
+            likes = float(res.get('likes', metrics['like_rate'] * impressions))
+            like_rate = _calculate_like_rate(likes, impressions)
+            metrics = {
+                'impressions': impressions,
+                'ctr': ctr,
+                'avg_view': avg_view_pct,
+                'like_rate': like_rate,
+            }
         conn.execute(
             "INSERT INTO analytics(video_id, ctr, avg_view, like_rate) VALUES(?,?,?,?)",
-            (int(v['id']), float(m['ctr']), float(m['avg_view']), float(m['like_rate'])),
+            (int(v['id']), float(metrics['ctr']), float(metrics['avg_view']), float(metrics['like_rate'])),
         )
         conn.commit()
         count += 1

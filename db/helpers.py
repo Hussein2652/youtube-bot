@@ -98,3 +98,8 @@ def recent_analytics_age_hours(conn: sqlite3.Connection) -> Optional[float]:
     )
     row = cur.fetchone()
     return float(row[0]) if row and row[0] is not None else None
+
+
+def video_has_queue_entry(conn: sqlite3.Connection, video_id: int) -> bool:
+    cur = conn.execute("SELECT 1 FROM queue WHERE video_id=? AND status IN ('pending','ready','scheduled','uploading')", (video_id,))
+    return cur.fetchone() is not None

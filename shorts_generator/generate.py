@@ -79,17 +79,29 @@ def _find_music(music_dir: Optional[str]) -> Optional[str]:
 
 def _mux_audio(ffmpeg_bin: str, in_video: str, voice_wav: str, out_video: str, music_path: Optional[str]) -> int:
     if music_path and os.path.exists(music_path):
-        # Mix voice and background music, duck music and set volume around -18dB
+        filter_complex = (
+            "[1:a]loudnorm=I=-16:TP=-1.5:LRA=11:print_format=none[voice];"
+            "[2:a]loudnorm=I=-28:TP=-2.0:LRA=9:print_format=none[music_norm];"
+            "[music_norm][voice]sidechaincompress=threshold=-30dB:ratio=8:attack=5:release=400:makeup=0[music_duck];"
+            "[voice][music_duck]amix=inputs=2:weights=1 0.4:duration=first:dropout_transition=2[mix];"
+            "[mix]volume=1.0,aresample=async=1[a]"
+        )
         return run_ffmpeg(ffmpeg_bin, [
             '-i', in_video,
             '-i', voice_wav,
             '-i', music_path,
-            '-filter_complex', "[2:a]volume=-18dB[m];[1:a][m]amix=inputs=2:weights=1.0 0.9:duration=shortest,aresample=async=1[a]",
+            '-filter_complex', filter_complex,
             '-map', '0:v', '-map', '[a]',
             '-c:v', 'copy', '-c:a', 'aac', '-shortest', out_video
         ])
     else:
-        return run_ffmpeg(ffmpeg_bin, ['-i', in_video, '-i', voice_wav, '-c:v', 'copy', '-c:a', 'aac', '-shortest', out_video])
+        return run_ffmpeg(ffmpeg_bin, [
+            '-i', in_video,
+            '-i', voice_wav,
+            '-filter_complex', "[1:a]loudnorm=I=-16:TP=-1.5:LRA=11:print_format=none[a]",
+            '-map', '0:v', '-map', '[a]',
+            '-c:v', 'copy', '-c:a', 'aac', '-shortest', out_video
+        ])
 
 
 def _make_silence(ffmpeg_bin: str, out_wav: str, duration: float) -> int:
