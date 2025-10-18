@@ -68,3 +68,10 @@ Notes
 - Scheduler defaults to Cairo timezone; adjust cadence in `schedule_manager/scheduler.py` if needed.
 - Run `python3 tools/youtube_uploader.py --help` after placing OAuth secrets in `./credentials/client_secret.json`; tokens cache to `./credentials/token.json`.
 - Run `python3 tools/analytics_puller.py --help` to confirm metrics fetch works; update `ANALYTICS_CMD` if you change arguments.
+
+Go-Live Checklist
+- Hook sources live under `assets/sources/` (`shorts_hooks.ndjson`, `shorts_hooks.json`) and feed the miner immediately.
+- Drop your ONNX embedding assets in `/models/embeddings/e5-small/` (see `.env.example` keys `EMB_MODEL_DIR`, `EMB_BATCH`, `EMB_DEVICE`, `TOPK_HOOKS`, `SIM_THRESHOLD`).
+- Configure media + LLM CLIs via `.env` (`TTS_CMD`, `SD_BG_CMD`, `SD_THUMB_CMD`, `LLM_CMD/LLM_MODEL`, `BG_MUSIC_*`).
+- Provide YouTube OAuth secrets in `./credentials/`, then use `YOUTUBE_UPLOADER_CMD` and `ANALYTICS_CMD` for uploads + metrics.
+- Run through `docs/SMOKE_TEST.md`; every command should succeed before scheduling daily runs.

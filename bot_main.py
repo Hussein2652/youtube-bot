@@ -109,13 +109,13 @@ def main() -> None:
 
         gen = generate_short(
             cfg.ffmpeg_bin,
+            cfg.piper_bin or '',
+            cfg.piper_voice or '',
             cfg.data_dir,
             fin['script_text'],
             fin['duration_sec'],
             segments=fin.get('segments'),
             tts_cmd=cfg.tts_cmd,
-            piper_bin=cfg.piper_bin,
-            piper_voice=cfg.piper_voice,
             music_dir=cfg.music_dir,
             music_glob=cfg.bg_music_glob,
             music_vol_db=cfg.bg_music_vol_db,

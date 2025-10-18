@@ -1,4 +1,5 @@
 import json
+import os
 import shlex
 import subprocess
 import hashlib
@@ -35,27 +36,30 @@ def _local_mutate_rules(text: str) -> str:
     return s
 
 
-def _try_llm_call(cmd: Optional[str], topic: str, hooks: List[Dict]) -> Optional[List[str]]:
+def _try_llm_call(cmd: Optional[str], topic: str, hooks: List[Dict]) -> Optional[List[Dict[str, str]]]:
     if not cmd:
         return None
     try:
+        model = os.getenv('LLM_MODEL', '').strip() or 'gpt-oss-20b'
         prompt = {
+            'task': 'mutate_hooks',
+            'model': model,
             'topic': topic,
             'constraints': {
                 'preserve_emotion': True,
                 'preserve_structure': True,
                 'change_nouns_verbs': True,
                 'max_words': 12,
-                'no_duplicates': True
+                'dedupe_against_seeds': True
             },
-            'hooks': [
+            'seeds': [
                 {
                     'text': h['raw_text'],
-                    'emotion': h.get('emotion'),
-                    'source': h.get('source'),
+                    'emotion': h.get('emotion')
                 }
                 for h in hooks
-            ]
+            ],
+            'count': len(hooks)
         }
         payload = json.dumps(prompt, ensure_ascii=False)
         proc = subprocess.run(
@@ -69,9 +73,23 @@ def _try_llm_call(cmd: Optional[str], topic: str, hooks: List[Dict]) -> Optional
             return None
         out = proc.stdout.decode('utf-8', errors='ignore').strip()
         arr = json.loads(out)
-        if isinstance(arr, list):
-            return [str(x) for x in arr]
-        return None
+        variants = []
+        if isinstance(arr, dict) and isinstance(arr.get('variants'), list):
+            items = arr['variants']
+        elif isinstance(arr, list):
+            items = arr
+        else:
+            return None
+        for item in items:
+            if isinstance(item, dict):
+                text = str(item.get('text') or '').strip()
+                emotion = item.get('emotion')
+            else:
+                text = str(item).strip()
+                emotion = None
+            if text:
+                variants.append({'text': text, 'emotion': emotion})
+        return variants or None
     except Exception:
         return None
 
@@ -82,20 +100,30 @@ def _norm_hash(s: str) -> str:
 
 def mutate_hooks(topic: str, hooks: List[Dict], llm_cmd: Optional[str], allow_llm: bool, limit: int = 10, *, data_dir: Optional[str] = None) -> Dict:
     selected = hooks[:limit]
-    mutated_texts: Optional[List[str]] = None
+    mutated_texts: Optional[List[Dict[str, str]]] = None
     llm_called = False
     if allow_llm:
         mutated_texts = _try_llm_call(llm_cmd, topic, selected)
         llm_called = mutated_texts is not None
 
     if not mutated_texts:
-        mutated_texts = [_local_mutate_rules(h['raw_text']) for h in selected]
+        mutated_texts = [
+            {
+                'text': _local_mutate_rules(h['raw_text']),
+                'emotion': h.get('emotion')
+            }
+            for h in selected
+        ]
 
     seed_set = set(h['raw_text'].strip().lower() for h in selected)
     seen_hashes = set()
     mutated = []
     for i, h in enumerate(selected):
-        cand = mutated_texts[i] if i < len(mutated_texts) else _local_mutate_rules(h['raw_text'])
+        entry = mutated_texts[i] if i < len(mutated_texts) else {
+            'text': _local_mutate_rules(h['raw_text']),
+            'emotion': h.get('emotion')
+        }
+        cand = entry.get('text') or _local_mutate_rules(h['raw_text'])
         # enforce <=12 words
         cand = ' '.join(cand.split()[:12])
         nh = _norm_hash(cand)
@@ -109,7 +137,7 @@ def mutate_hooks(topic: str, hooks: List[Dict], llm_cmd: Optional[str], allow_ll
         seen_hashes.add(nh)
         if data_dir:
             add_hash(data_dir, nh, topic=topic)
-        mutated.append({**h, 'mutated_text': cand})
+        mutated.append({**h, 'mutated_text': cand, 'emotion': entry.get('emotion', h.get('emotion'))})
     return {
         'ok': True,
         'topic': topic,

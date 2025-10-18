@@ -140,14 +140,14 @@ def _ken_burns(ffmpeg_bin: str, image_path: str, out_path: str, duration: float)
 
 def generate_short(
     ffmpeg_bin: str,
+    piper_bin: str,
+    tts_voice: str,
     data_dir: str,
     script_text: str,
     duration_sec: float,
     *,
     segments: Optional[List[Dict]] = None,
     tts_cmd: Optional[str] = None,
-    piper_bin: Optional[str] = None,
-    piper_voice: Optional[str] = None,
     music_dir: Optional[str] = None,
     music_glob: Optional[str] = None,
     music_vol_db: float = -18.0,
@@ -187,9 +187,9 @@ def generate_short(
             return {'ok': False, 'error': 'text_burn_failed'}
 
     # TTS or silence
-    did_tts = synthesize_with_command(tts_cmd, script_text, out_wav, piper_bin=piper_bin, piper_voice=piper_voice)
+    did_tts = synthesize_with_command(tts_cmd, script_text, out_wav, piper_bin=piper_bin, piper_voice=tts_voice)
     if not did_tts:
-        did_tts = synthesize_with_piper(piper_bin, piper_voice, script_text, out_wav)
+        did_tts = synthesize_with_piper(piper_bin, tts_voice, script_text, out_wav)
     if not did_tts:
         _make_silence(ffmpeg_bin, out_wav, final_dur)
 

@@ -47,6 +47,18 @@ def rank_hooks_for_topic(
     sim_threshold: float = 0.0,
 ) -> Dict:
     # Embedding-based relevance with bias
+    normalized_hooks: List[Dict] = []
+    for h in hooks:
+        raw_text = h.get('raw_text') or h.get('text') or ''
+        if not raw_text:
+            continue
+        entry = dict(h)
+        entry['raw_text'] = raw_text
+        normalized_hooks.append(entry)
+
+    if not normalized_hooks:
+        return {'ok': True, 'topic': topic, 'top_hooks': [], 'count': 0}
+
     em = EmbeddingModel(
         backend=embeddings_backend,
         model_path=embeddings_model_path,
@@ -60,7 +72,7 @@ def rank_hooks_for_topic(
     bias = _load_bias(os.path.join('assets', 'bias.json')) if os.path.exists(os.path.join('assets', 'bias.json')) else {'emotion_weights': {}, 'ngram_weights': {}}
 
     scored: List[Tuple[float, Dict]] = []
-    for h, v in zip(hooks, hook_vecs):
+    for h, v in zip(normalized_hooks, hook_vecs):
         rel = cosine_sim(topic_vec, v)
         bscore = _bias_score(h.get('raw_text', ''), h.get('emotion'), bias)
         s = rel * bscore
@@ -83,3 +95,23 @@ def rank_hooks_for_topic(
         write_json(snapshot_path, existing)
 
     return {'ok': True, 'topic': topic, 'top_hooks': top, 'count': len(top)}
+
+
+def select(topic: str, hooks: List[Dict], k: int = 20, *, embeddings_backend: str = 'hash', model_dir: Optional[str] = None) -> List[Dict]:
+    """Convenience wrapper returning a compact list of top hooks for quick scripts."""
+    enriched = [{'raw_text': h.get('text') or h.get('raw_text', ''), **h} for h in hooks]
+    res = rank_hooks_for_topic(
+        topic,
+        enriched,
+        top_k=k,
+        data_dir=None,
+        embeddings_backend=embeddings_backend,
+        embeddings_model_path=None,
+        embeddings_tokenizer_path=None,
+        emb_model_dir=model_dir,
+        sim_threshold=0.0,
+    )
+    out = []
+    for item in res['top_hooks']:
+        out.append({'text': item['raw_text'], 'score': item['score']})
+    return out

@@ -115,13 +115,17 @@ def main(argv: List[str] | None = None) -> int:
 
     video_ids = args.video_ids or list_recent_videos(youtube)
     if not video_ids:
-        print(json.dumps({'error': 'No video ids available'}), file=sys.stderr)
-        return 1
+        os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
+        with open(args.out, 'w', encoding='utf-8') as f:
+            json.dump([], f, ensure_ascii=False, indent=2)
+        print(json.dumps([]))
+        return 0
 
     data = fetch_metrics(analytics, channel_id, video_ids, since_date, end_date)
     os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
     with open(args.out, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    print(json.dumps(data))
     return 0
 
 
