@@ -43,12 +43,15 @@ def rank_hooks_for_topic(
     embeddings_backend: str = 'hash',
     embeddings_model_path: Optional[str] = None,
     embeddings_tokenizer_path: Optional[str] = None,
+    emb_model_dir: Optional[str] = None,
+    sim_threshold: float = 0.0,
 ) -> Dict:
     # Embedding-based relevance with bias
     em = EmbeddingModel(
         backend=embeddings_backend,
         model_path=embeddings_model_path,
         tokenizer_path=embeddings_tokenizer_path,
+        model_dir=emb_model_dir,
     )
     topic_vec = em.embed([topic])[0]
     texts = [h['raw_text'] for h in hooks]
@@ -63,7 +66,8 @@ def rank_hooks_for_topic(
         s = rel * bscore
         scored.append((s, h))
     scored.sort(key=lambda x: x[0], reverse=True)
-    top = [{**h, 'score': float(s)} for (s, h) in scored[:top_k]]
+    filtered = [(s, h) for (s, h) in scored if s >= sim_threshold]
+    top = [{**h, 'score': float(s)} for (s, h) in filtered[:top_k]]
 
     # Persist per-topic selections for reproducibility
     if data_dir:
@@ -71,5 +75,11 @@ def rank_hooks_for_topic(
         ensure_dir(sel_dir)
         outp = os.path.join(sel_dir, f"{slugify(topic)}.json")
         write_json(outp, top)
+
+        # also write cumulative selection snapshot
+        snapshot_path = os.path.join(data_dir, 'hooks_selected.json')
+        existing = read_json(snapshot_path, default={}) or {}
+        existing[topic] = top
+        write_json(snapshot_path, existing)
 
     return {'ok': True, 'topic': topic, 'top_hooks': top, 'count': len(top)}

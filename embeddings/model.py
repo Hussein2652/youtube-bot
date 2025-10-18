@@ -1,3 +1,4 @@
+import json
 import math
 import os
 from typing import List, Optional
@@ -27,21 +28,50 @@ except Exception:  # pragma: no cover
 
 
 class EmbeddingModel:
-    def __init__(self, backend: str = 'hash', model_path: Optional[str] = None, tokenizer_path: Optional[str] = None, max_length: int = 128):
+    def __init__(
+        self,
+        backend: str = 'hash',
+        model_path: Optional[str] = None,
+        tokenizer_path: Optional[str] = None,
+        model_dir: Optional[str] = None,
+        max_length: int = 128,
+        device: str = 'auto',
+    ):
         self.backend = backend
+        self.model_dir = model_dir
+        if model_dir and not model_path:
+            candidate = os.path.join(model_dir, 'model.onnx')
+            model_path = candidate if os.path.exists(candidate) else None
+        if model_dir and not tokenizer_path:
+            candidate_tok = os.path.join(model_dir, 'tokenizer.json')
+            tokenizer_path = candidate_tok if os.path.exists(candidate_tok) else None
         self.model_path = model_path
         self.tokenizer_path = tokenizer_path
         self.max_length = max_length
+        self.device = device
         self._sess = None
         self._tokenizer = None
+        self._vocab_vectors = None
+
         if backend == 'onnx' and model_path and os.path.exists(model_path):
             try:
                 import onnxruntime as ort  # type: ignore
-                self._sess = ort.InferenceSession(model_path, providers=['CPUExecutionProvider'])
+
+                providers = ['CPUExecutionProvider']
+                if device.lower() in ('cuda', 'gpu'):
+                    providers.insert(0, 'CUDAExecutionProvider')
+                self._sess = ort.InferenceSession(model_path, providers=providers)
                 if tokenizer_path and Tokenizer:
                     self._tokenizer = Tokenizer.from_file(tokenizer_path)
+                else:
+                    self._load_basic_tokenizer()
             except Exception:
                 self.backend = 'hash'
+        else:
+            self.backend = 'hash'
+
+        if self.backend != 'onnx':
+            self._load_basic_tokenizer()
 
     def embed(self, texts: List[str]) -> List[List[float]]:
         if self.backend != 'onnx' or not self._sess:
@@ -98,3 +128,39 @@ class EmbeddingModel:
             norm = math.sqrt(sum(v * v for v in vec)) or 1.0
             vectors.append([v / norm for v in vec])
         return vectors
+
+    def _load_basic_tokenizer(self) -> None:
+        """Fallback tokenization using plain whitespace word-level vocab."""
+        if self._tokenizer is not None:
+            return
+        vocab_map = {}
+        if self.model_dir:
+            vocab_path = os.path.join(self.model_dir, 'vocab.txt')
+            if os.path.exists(vocab_path):
+                with open(vocab_path, 'r', encoding='utf-8') as vf:
+                    for idx, line in enumerate(vf):
+                        token = line.strip()
+                        if token:
+                            vocab_map[token] = idx + 1
+        # Make simple struct to mimic tokenizers interface
+        class SimpleEncoding:
+            def __init__(self, ids, type_ids=None):
+                self.ids = ids
+                self.type_ids = type_ids or [1] * len(ids)
+
+        class SimpleTokenizer:
+            def __init__(self, vocab):
+                self.vocab = vocab
+
+            def encode_batch(self, texts):
+                encodings = []
+                for text in texts:
+                    tokens = text.lower().split()
+                    ids = [self.vocab.get(tok, (hash(tok) % 10000) + 1) for tok in tokens]
+                    encodings.append(SimpleEncoding(ids))
+                return encodings
+
+        if vocab_map:
+            self._tokenizer = SimpleTokenizer(vocab_map)  # type: ignore
+        else:
+            self._tokenizer = SimpleTokenizer({})  # type: ignore

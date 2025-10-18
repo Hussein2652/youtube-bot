@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "truncation": {
+    "max_length": 128,
+    "strategy": "longest_first"
+  },
+  "padding": {
+    "strategy": "do_not_pad"
+  },
+  "model": {
+    "type": "WordLevel",
+    "unk_token": "[UNK]",
+    "vocab": {
+      "[UNK]": 0,
+      "the": 1,
+      "this": 2,
+      "that": 3,
+      "ai": 4,
+      "hack": 5,
+      "money": 6,
+      "habit": 7,
+      "viral": 8,
+      "secret": 9
+    }
+  },
+  "pre_tokenizer": {
+    "type": "Whitespace"
+  }
+}

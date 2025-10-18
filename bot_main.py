@@ -74,11 +74,13 @@ def main() -> None:
         ranked = rank_hooks_for_topic(
             current_topic,
             topic_hooks,
-            top_k=30,
+            top_k=cfg.topk_hooks,
             data_dir=cfg.data_dir,
             embeddings_backend=cfg.embeddings_backend,
             embeddings_model_path=cfg.embeddings_model_path,
             embeddings_tokenizer_path=cfg.embeddings_tokenizer_path,
+            emb_model_dir=cfg.emb_model_dir,
+            sim_threshold=cfg.sim_threshold,
         )
         top_hooks = ranked['top_hooks']
         if not top_hooks:
@@ -107,13 +109,16 @@ def main() -> None:
 
         gen = generate_short(
             cfg.ffmpeg_bin,
-            cfg.piper_bin or '',
-            cfg.tts_voice or '',
             cfg.data_dir,
             fin['script_text'],
             fin['duration_sec'],
             segments=fin.get('segments'),
+            tts_cmd=cfg.tts_cmd,
+            piper_bin=cfg.piper_bin,
+            piper_voice=cfg.piper_voice,
             music_dir=cfg.music_dir,
+            music_glob=cfg.bg_music_glob,
+            music_vol_db=cfg.bg_music_vol_db,
             sd_bg_cmd=cfg.sd_bg_cmd,
             sd_thumb_cmd=cfg.sd_thumb_cmd,
         )
@@ -136,7 +141,7 @@ def main() -> None:
         used_texts = {h['raw_text'] for h in top_hooks}
         hooks = [h for h in hooks if h.get('raw_text') not in used_texts]
 
-    up = attempt_uploads(conn, cfg.uploader_cmd)
+    up = attempt_uploads(conn, cfg.uploader_cmd, privacy_status=cfg.privacy_status, category_id=cfg.category_id)
     log(f"Uploader attempted: {up}")
 
     analytics = pull_and_record(conn, cfg.analytics_cmd)

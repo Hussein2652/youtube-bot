@@ -32,6 +32,7 @@ def _normalize(raw: Dict, *, source: str) -> Dict:
         'duration': duration,
         'source': source,
         'url': raw.get('url') or raw.get('share_url') or raw.get('short_link'),
+        'topic_tags': raw.get('topic_tags') or [],
     }
 
 
@@ -65,22 +66,26 @@ class YouTubeShortsAdapter(BaseAdapter):
 
         items: List[Dict] = []
         with open(self.path, 'r', encoding='utf-8') as f:
-            for line in f:
-                if not line.strip():
-                    continue
-                data = json.loads(line)
-                normal = _normalize(
-                    {
-                        'text': data.get('title'),
-                        'emotion': data.get('emotion'),
-                        'views': data.get('view_count') or data.get('viewCount'),
-                        'duration': data.get('length_seconds') or data.get('lengthSeconds'),
-                        'url': data.get('url') or data.get('webpage_url')
-                    },
-                    source='youtube_shorts'
-                )
-                if normal:
-                    items.append(normal)
+            content = f.read()
+        if self.path.lower().endswith('.json') and not self.path.lower().endswith('.ndjson'):
+            try:
+                data_iter = json.loads(content)
+            except json.JSONDecodeError:
+                data_iter = []
+        else:
+            data_iter = []
+            for line in content.splitlines():
+                if line.strip():
+                    data_iter.append(json.loads(line))
+
+        for data in data_iter:
+            source_name = data.get('source') or 'youtube_shorts'
+            payload = dict(data)
+            normal = _normalize(payload, source=source_name)
+            if normal:
+                if 'topic_tags' in data:
+                    normal['topic_tags'] = data['topic_tags']
+                items.append(normal)
         cache.set(self.cache_key, items)
         log(f"YouTubeShortsAdapter fetched {len(items)} hooks from {self.path}")
         return items
@@ -177,4 +182,3 @@ def collect_from_adapters(adapters: Iterable[BaseAdapter], data_dir: str, cache_
         except Exception as exc:  # pragma: no cover
             log(f"Adapter {adapter.name} failed: {exc}")
     return results
-

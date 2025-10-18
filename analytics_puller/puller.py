@@ -1,5 +1,6 @@
 import json
 import os
+import shlex
 import subprocess
 from datetime import datetime, timedelta
 from typing import Dict, Optional
@@ -77,21 +78,70 @@ def _update_bias(conn, bias_path: str) -> Dict:
     return {'ok': True, 'updated': len(bias['emotion_weights']) + len(bias['ngram_weights'])}
 
 
+def _run_bulk_analytics(cmd: str) -> Dict[str, Dict]:
+    out_path = None
+    try:
+        parts = shlex.split(cmd)
+    except ValueError:
+        parts = cmd.split()
+    for idx, token in enumerate(parts):
+        if token == '--out' and idx + 1 < len(parts):
+            out_path = parts[idx + 1]
+            break
+    proc = subprocess.run(cmd, shell=True, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    payload = proc.stdout.decode('utf-8', errors='ignore').strip()
+    data: Dict[str, Dict] = {}
+    if proc.returncode == 0:
+        if payload:
+            try:
+                parsed = json.loads(payload)
+                if isinstance(parsed, list):
+                    for row in parsed:
+                        vid = row.get('videoId')
+                        if vid:
+                            data[str(vid)] = row
+            except json.JSONDecodeError:
+                pass
+        if not data and out_path and os.path.exists(out_path):
+            try:
+                with open(out_path, 'r', encoding='utf-8') as f:
+                    parsed = json.load(f)
+                for row in parsed:
+                    vid = row.get('videoId')
+                    if vid:
+                        data[str(vid)] = row
+            except Exception:
+                pass
+    return data
+
+
 def pull_and_record(conn, analytics_cmd: Optional[str] = None) -> Dict:
     vids = _eligible_videos(conn)
     count = 0
+    bulk_results: Dict[str, Dict] = {}
+    per_video = False
+    if analytics_cmd:
+        if '{video_id}' in analytics_cmd:
+            per_video = True
+        else:
+            bulk_results = _run_bulk_analytics(analytics_cmd)
     for v in vids:
         if not v['platform_video_id']:
             continue
         metrics = {'impressions': 1000, 'ctr': 0.08, 'avg_view': 0.8, 'like_rate': 0.04}
         if analytics_cmd:
-            uploaded_at = datetime.fromisoformat(v['uploaded_at'])
-            start_date = uploaded_at.date().isoformat()
-            end_date = (uploaded_at + timedelta(days=3)).date().isoformat()
-            res = _call_analytics(analytics_cmd, v['platform_video_id'], start_date, end_date) or {}
+            if per_video:
+                uploaded_at = datetime.fromisoformat(v['uploaded_at'])
+                start_date = uploaded_at.date().isoformat()
+                end_date = (uploaded_at + timedelta(days=3)).date().isoformat()
+                res = _call_analytics(analytics_cmd, v['platform_video_id'], start_date, end_date) or {}
+            else:
+                res = bulk_results.get(v['platform_video_id'], {})
             impressions = float(res.get('impressions', metrics['impressions']))
             ctr = float(res.get('ctr', metrics['ctr']))
-            avg_view_pct = float(res.get('avg_view_percent', metrics['avg_view'] * 100.0)) / 100.0
+            avg_view_pct = float(res.get('avg_view_pct', res.get('avg_view_percent', metrics['avg_view'] * 100.0)))
+            if avg_view_pct > 1.5:  # likely percent
+                avg_view_pct = avg_view_pct / 100.0
             likes = float(res.get('likes', metrics['like_rate'] * impressions))
             like_rate = _calculate_like_rate(likes, impressions)
             metrics = {

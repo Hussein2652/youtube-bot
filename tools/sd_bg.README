@@ -1,0 +1,18 @@
+Stable Diffusion background helper (spec)
+--------------------------------------
+
+Command signature used by env vars:
+
+  python3 tools/sd_bg.py --prompt "<text>" --out <output_png> --size 1080x1920 --model <checkpoint>
+
+Requirements
+- Choose CUDA if available, otherwise CPU.
+- Accept --prompt, --out, --size (WIDTHxHEIGHT), --model.
+- Render PNG to the path passed via --out and exit 0 on success.
+- Return non-zero with an error message if generation fails.
+
+The supervisor expects two variants defined via environment variables:
+- SD_BG_CMD  -> 1080x1920 backgrounds (runwayml/stable-diffusion-v1-5 by default)
+- SD_THUMB_CMD -> 1280x720 thumbnails (stable-diffusion-xl base)
+
+This repository only documents the contract. Implement the generator on your workstation and ensure the command exits successfully before running the bot.

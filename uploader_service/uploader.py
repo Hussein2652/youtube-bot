@@ -1,5 +1,5 @@
 import json
-import shlex
+import os
 import subprocess
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
@@ -35,9 +35,26 @@ def _derive_description(script_text: Optional[str]) -> str:
     return script_text[:500]
 
 
-def _call_uploader(cmd: str, video_path: str, thumb_path: str, title: str, description: str) -> (bool, Optional[str]):
+def _call_uploader(cmd: str, *, video_path: str, thumb_path: str, title: str, description: str, tags: str, privacy: str, category: str) -> (bool, Optional[str]):
     try:
-        full = f"{cmd} --title {shlex.quote(title)} --description {shlex.quote(description)} --file {shlex.quote(video_path)} --thumbnail {shlex.quote(thumb_path)}"
+        template = os.path.expandvars(cmd)
+        full = template.format(
+            mp4=video_path,
+            file=video_path,
+            video=video_path,
+            thumbnail=thumb_path,
+            thumb=thumb_path,
+            png=thumb_path,
+            title=title,
+            description=description,
+            desc=description,
+            tags=tags,
+            csv_tags=tags,
+            privacy=privacy,
+            privacy_status=privacy,
+            category=category,
+            category_id=category,
+        )
         proc = subprocess.run(full, shell=True, check=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out = proc.stdout.decode('utf-8', errors='ignore') if proc.stdout else ''
         vid = _parse_video_id(out)
@@ -46,7 +63,7 @@ def _call_uploader(cmd: str, video_path: str, thumb_path: str, title: str, descr
         return (False, None)
 
 
-def attempt_uploads(conn, uploader_cmd: Optional[str]) -> Dict:
+def attempt_uploads(conn, uploader_cmd: Optional[str], *, privacy_status: str = 'public', category_id: str = '24') -> Dict:
     # Upload only items past schedule time
     cur = conn.execute(
         """
@@ -68,7 +85,17 @@ def attempt_uploads(conn, uploader_cmd: Optional[str]) -> Dict:
         if uploader_cmd:
             title = _derive_title(it.get('script_text'))
             description = _derive_description(it.get('script_text'))
-            ok, video_id_str = _call_uploader(uploader_cmd, it['video_path'], it['thumb_path'], title=title, description=description)
+            tags = ','.join((it.get('script_text') or '').split()[:5])
+            ok, video_id_str = _call_uploader(
+                uploader_cmd,
+                video_path=it['video_path'],
+                thumb_path=it['thumb_path'],
+                title=title,
+                description=description,
+                tags=tags,
+                privacy=privacy_status,
+                category=category_id,
+            )
         if ok:
             conn.execute("UPDATE queue SET status='uploaded' WHERE id=?", (it['queue_id'],))
             conn.execute("UPDATE videos SET status='uploaded', platform_video_id=?, uploaded_at=datetime('now') WHERE id=?", (video_id_str, it['video_id']))

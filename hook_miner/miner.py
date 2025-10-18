@@ -3,7 +3,7 @@ import os
 import random
 from typing import Dict, List
 
-from utils import write_json, read_json, ensure_dir, log
+from utils import write_json, read_json, ensure_dir, log, slugify
 from .sources import (
     YouTubeShortsAdapter,
     RedditAdapter,
@@ -70,9 +70,20 @@ def mine_hooks(data_dir: str, topics: List[str], *, per_topic: int = 200, source
     hooks: List[Dict] = []
     for it in items:
         text = it.get('text', '')
-        # attach topic labels via naive matching for now
+        tags = [tag.lower() for tag in (it.get('topic_tags') or [])]
         for t in topics:
-            if t.split()[0].lower() in text.lower():
+            topic_key = slugify(t)
+            topic_words = [w.lower() for w in t.split()]
+            stemmed = [w.rstrip('s') for w in topic_words]
+            text_lower = text.lower()
+            tag_match = (
+                topic_key in tags
+                or any(word in tags for word in topic_words)
+                or any(word in tags for word in stemmed)
+                or any(word in tag for tag in tags for word in topic_words + stemmed)
+            )
+            text_match = any(word in text_lower for word in topic_words + stemmed)
+            if tag_match or text_match:
                 hooks.append({
                     'topic': t,
                     'raw_text': text,
@@ -81,33 +92,37 @@ def mine_hooks(data_dir: str, topics: List[str], *, per_topic: int = 200, source
                     'emotion': it.get('emotion'),
                     'duration': float(it.get('duration') or 0.0),
                     'source': it.get('source'),
+                    'topic_tags': it.get('topic_tags', []),
                 })
                 break
 
-    # If adapters empty, fall back to simple synthetic hooks to keep pipeline live
-    if not hooks:
-        patterns = [
-            "No one told you this about {topic}",
-            "The truth about {topic} in 5 seconds",
-            "Most people get {topic} wrong. Here's why",
-            "Stop doing this if you care about {topic}",
-            "I tested 100+ {topic} tips so you don't have to",
-            "This {topic} hack changes everything",
-            "New study just broke {topic}",
-            "The fastest way to improve at {topic}",
-        ]
-        for t in topics:
-            for i in range(per_topic):
-                p = random.choice(patterns)
-                hooks.append({
-                    'topic': t,
-                    'raw_text': p.format(topic=t),
-                    'source_url': None,
-                    'score': 0.0,
-                    'emotion': None,
-                    'duration': 5.0,
-                    'source': 'synthetic',
-                })
+    patterns = [
+        "No one told you this about {topic}",
+        "The truth about {topic} in 5 seconds",
+        "Most people get {topic} wrong. Here's why",
+        "Stop doing this if you care about {topic}",
+        "I tested 100+ {topic} tips so you don't have to",
+        "This {topic} hack changes everything",
+        "New study just broke {topic}",
+        "The fastest way to improve at {topic}",
+    ]
+
+    from collections import Counter
+    counts = Counter(h['topic'] for h in hooks)
+    for t in topics:
+        needed = max(0, per_topic - counts.get(t, 0))
+        for _ in range(needed):
+            p = random.choice(patterns)
+            hooks.append({
+                'topic': t,
+                'raw_text': p.format(topic=t),
+                'source_url': None,
+                'score': 0.0,
+                'emotion': None,
+                'duration': 5.0,
+                'source': 'synthetic',
+                'topic_tags': [],
+            })
 
     path = os.path.join(data_dir, 'hooks_dataset.json')
     write_json(path, hooks)

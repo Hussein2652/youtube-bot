@@ -1,8 +1,9 @@
+import glob
 import os
 import random
 from typing import Dict, List, Optional
 import subprocess
-from utils import ensure_dir, run_ffmpeg, synthesize_with_piper, log
+from utils import ensure_dir, run_ffmpeg, synthesize_with_piper, synthesize_with_command, log
 
 
 def _escape_text(text: str) -> str:
@@ -68,24 +69,29 @@ def _burn_simple_text(ffmpeg_bin: str, in_video: str, text: str, out_video: str)
     return run_ffmpeg(ffmpeg_bin, ['-i', in_video, '-vf', vf, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', out_video])
 
 
-def _find_music(music_dir: Optional[str]) -> Optional[str]:
-    if not music_dir or not os.path.isdir(music_dir):
+def _find_music(music_dir: Optional[str], music_glob: Optional[str]) -> Optional[str]:
+    candidates: List[str] = []
+    if music_glob:
+        candidates.extend(glob.glob(os.path.expandvars(music_glob)))
+    if music_dir and os.path.isdir(music_dir):
+        for fn in os.listdir(music_dir):
+            if fn.lower().endswith(('.mp3', '.wav', '.flac', '.m4a', '.aac', '.ogg')):
+                candidates.append(os.path.join(music_dir, fn))
+    if not candidates:
         return None
-    for fn in os.listdir(music_dir):
-        if fn.lower().endswith(('.mp3', '.wav', '.flac', '.m4a', '.aac', '.ogg')):
-            return os.path.join(music_dir, fn)
-    return None
+    return random.choice(candidates)
 
 
-def _mux_audio(ffmpeg_bin: str, in_video: str, voice_wav: str, out_video: str, music_path: Optional[str]) -> int:
+def _mux_audio(ffmpeg_bin: str, in_video: str, voice_wav: str, out_video: str, music_path: Optional[str], music_vol_db: float) -> int:
     if music_path and os.path.exists(music_path):
         filter_complex = (
             "[1:a]loudnorm=I=-16:TP=-1.5:LRA=11:print_format=none[voice];"
-            "[2:a]loudnorm=I=-28:TP=-2.0:LRA=9:print_format=none[music_norm];"
+            "[2:a]loudnorm=I={mv}:TP=-2.0:LRA=9:print_format=none[music_norm];"
             "[music_norm][voice]sidechaincompress=threshold=-30dB:ratio=8:attack=5:release=400:makeup=0[music_duck];"
-            "[voice][music_duck]amix=inputs=2:weights=1 0.4:duration=first:dropout_transition=2[mix];"
+            "[voice][music_duck]amix=inputs=2:weights=1 0.35:duration=first:dropout_transition=2[mix];"
             "[mix]volume=1.0,aresample=async=1[a]"
         )
+        filter_complex = filter_complex.format(mv=f"{music_vol_db}dB")
         return run_ffmpeg(ffmpeg_bin, [
             '-i', in_video,
             '-i', voice_wav,
@@ -132,7 +138,22 @@ def _ken_burns(ffmpeg_bin: str, image_path: str, out_path: str, duration: float)
     ])
 
 
-def generate_short(ffmpeg_bin: str, piper_bin: str, tts_voice: str, data_dir: str, script_text: str, duration_sec: float, *, segments: Optional[List[Dict]] = None, music_dir: Optional[str] = None, sd_bg_cmd: Optional[str] = None, sd_thumb_cmd: Optional[str] = None) -> Dict:
+def generate_short(
+    ffmpeg_bin: str,
+    data_dir: str,
+    script_text: str,
+    duration_sec: float,
+    *,
+    segments: Optional[List[Dict]] = None,
+    tts_cmd: Optional[str] = None,
+    piper_bin: Optional[str] = None,
+    piper_voice: Optional[str] = None,
+    music_dir: Optional[str] = None,
+    music_glob: Optional[str] = None,
+    music_vol_db: float = -18.0,
+    sd_bg_cmd: Optional[str] = None,
+    sd_thumb_cmd: Optional[str] = None,
+) -> Dict:
     ensure_dir(os.path.join(data_dir, 'video'))
     ensure_dir(os.path.join(data_dir, 'audio'))
     ensure_dir(os.path.join(data_dir, 'thumbs'))
@@ -166,13 +187,15 @@ def generate_short(ffmpeg_bin: str, piper_bin: str, tts_voice: str, data_dir: st
             return {'ok': False, 'error': 'text_burn_failed'}
 
     # TTS or silence
-    did_tts = synthesize_with_piper(piper_bin, tts_voice, script_text, out_wav)
+    did_tts = synthesize_with_command(tts_cmd, script_text, out_wav, piper_bin=piper_bin, piper_voice=piper_voice)
+    if not did_tts:
+        did_tts = synthesize_with_piper(piper_bin, piper_voice, script_text, out_wav)
     if not did_tts:
         _make_silence(ffmpeg_bin, out_wav, final_dur)
 
     # Mux
-    music = _find_music(music_dir)
-    rc = _mux_audio(ffmpeg_bin, tmp_txt, out_wav, out_mp4, music)
+    music = _find_music(music_dir, music_glob)
+    rc = _mux_audio(ffmpeg_bin, tmp_txt, out_wav, out_mp4, music, music_vol_db)
     if rc != 0:
         return {'ok': False, 'error': 'mux_failed'}
 

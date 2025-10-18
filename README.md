@@ -17,7 +17,7 @@ What’s New (pre-scale gaps closed)
 - Uploader: exponential backoff; store `platform_video_id` and timestamps; set `ready` when not uploaded.
 - Analytics: 48h-after publish pull stub; compute score and update `assets/bias.json` (emotion + n‑gram weights) to bias next runs.
 - Idempotency: unique hashes for scripts/videos, safe enqueues, persistent `data/bot.db` + `data/state.json`.
-- Tools: `tools/uploader_cli.py` for resumable uploads (thumbnail support) and `tools/analytics_cli.py` for post-48h metrics (impressions, CTR, avg view %, likes).
+- Media CLIs: `llm_runner.py` (JSON mutator), `tools/youtube_uploader.py` (resumable uploads + thumbnail), `tools/analytics_puller.py` (post-48h metrics), and `tools/sd_bg.README` (SD command contract).
 
 Quick Start
 1) Copy `.env.example` to `.env` and adjust values.
@@ -29,20 +29,19 @@ Key Env Vars
 - DATA_DIR: persistent working directory (default: data)
 - MIN_QUEUE: wake LLM only when queue below this (default: 6)
 - DAILY_TARGET_MIN/MAX: daily schedule range (default: 10–20)
-- PIPER_BIN, TTS_VOICE: Piper executable and voice model path
+- PIPER_BIN, PIPER_VOICE, TTS_CMD: Piper executable, voice model, and formatted command string
 - FFMPEG_BIN: ffmpeg path (default: ffmpeg)
 - SD_CMD: command to generate backgrounds/thumbnails via SD1.5/XL (optional)
 - SD_BG_CMD: command for SD1.5 backgrounds (fast)
 - SD_THUMB_CMD: command for SDXL thumbnails (quality)
-- LLM_CMD: command to run local 20B LLM for hook mutation (optional; called only if inventory < MIN_QUEUE)
-- YOUTUBE_UPLOADER_CMD: local uploader command (optional)
-- YOUTUBE_API_KEY, YOUTUBE_CHANNEL_ID (if using native API client)
-- EMBEDDINGS_BACKEND: `hash` (default) or `onnx` (requires local onnxruntime + compatible model wrapper)
-- EMBEDDINGS_MODEL_PATH: local .onnx path (optional)
-- EMBEDDINGS_TOKENIZER_PATH: tokenizer.json for the ONNX model (required when backend=onnx)
-- MUSIC_DIR: folder with background music to mix (default: assets/music)
+- LLM_CMD / LLM_MODEL: command + model name for JSON mutate runner (invoked only when queue < MIN_QUEUE)
+- YOUTUBE_UPLOADER_CMD: local uploader command (resumable uploads + thumbnail)
+- YOUTUBE_CHANNEL_ID (if using native API client)
+- PRIVACY_STATUS, CATEGORY_ID: default upload metadata
+- EMBEDDINGS_BACKEND / EMB_MODEL_DIR / EMB_BATCH / EMB_DEVICE / TOPK_HOOKS / SIM_THRESHOLD: embedding backend, asset dir, batch size, device preference, ranking parameters
+- MUSIC_DIR, BG_MUSIC_GLOB, BG_MUSIC_VOL_DB: background music folders, glob pattern, and target LUFS offset
 - MINER_CACHE_TTL_SEC / MINER_RATE_PER_KEY_SEC / MINER_SOURCE_GLOB: hook miner controls (cache + rate limit)
-- ANALYTICS_CMD: command to pull analytics (defaults to `python tools/analytics_cli.py ...`)
+- ANALYTICS_CMD: analytics CLI (default `python3 tools/analytics_puller.py --since 2d --out data/metrics_latest.json`)
 
 Data Layout
 - `data/bot.db` — SQLite DB
@@ -54,8 +53,10 @@ Data Layout
 - `assets/bias.json` — emotion/ngram weights updated by analytics
 - `assets/sources/` — drop your local scrapes here (miners read these)
 - `assets/music/` — optional background music files
-- `tools/uploader_cli.py` — resumable upload helper (OAuth required)
-- `tools/analytics_cli.py` — metrics fetcher (YT Analytics API)
+- `llm_runner.py` — local hook mutator CLI
+- `tools/youtube_uploader.py` — resumable upload helper (OAuth required)
+- `tools/analytics_puller.py` — metrics fetcher (YT Analytics API)
+- `tools/sd_bg.README` — Stable Diffusion command contract
 
 Supervisor Loop (bot_main.py)
 - Discovers topics → mines hooks → filters relevant hooks → (conditionally) mutates via LLM → finalizes micro-script → generates short.mp4 + thumb.png → schedules jobs → optionally uploads pending jobs.
@@ -65,5 +66,5 @@ Notes
 - LLM is never called unless `queue_size < MIN_QUEUE`.
 - If Piper/SD not configured, generator falls back to deterministic ffmpeg (solid background + text overlay + silent/tts audio) to keep pipeline functional.
 - Scheduler defaults to Cairo timezone; adjust cadence in `schedule_manager/scheduler.py` if needed.
-- Run `python tools/uploader_cli.py --help` to configure Youtube OAuth uploads (set `YOUTUBE_CLIENT_SECRETS_FILE`, optional `YOUTUBE_TOKEN_FILE`). Wire `YOUTUBE_UPLOADER_CMD="python tools/uploader_cli.py"`.
-- Run `python tools/analytics_cli.py --help` to configure analytics pulls; point `ANALYTICS_CMD` at the script.
+- Run `python3 tools/youtube_uploader.py --help` after placing OAuth secrets in `./credentials/client_secret.json`; tokens cache to `./credentials/token.json`.
+- Run `python3 tools/analytics_puller.py --help` to confirm metrics fetch works; update `ANALYTICS_CMD` if you change arguments.
