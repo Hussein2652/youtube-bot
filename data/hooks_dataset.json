@@ -1,5 +1,19 @@
 [
   {
+    "topic": "AI productivity",
+    "raw_text": "This AI side hustle prints cash while you sleep",
+    "source_url": null,
+    "score": 982341.0,
+    "emotion": "Greed",
+    "duration": 4.5,
+    "source": "curated_short_feed",
+    "topic_tags": [
+      "ai",
+      "side hustle",
+      "automation"
+    ]
+  },
+  {
     "topic": "Life hacks",
     "raw_text": "Five second kitchen hack chefs swear by today",
     "source_url": null,
@@ -13,6 +27,45 @@
     ]
   },
   {
+    "topic": "Crypto trends",
+    "raw_text": "This forgotten manuscript predicts crypto's next pump",
+    "source_url": null,
+    "score": 904512.0,
+    "emotion": "FOMO",
+    "duration": 4.2,
+    "source": "crypto_oracle",
+    "topic_tags": [
+      "crypto",
+      "predictions"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "Most millionaires did this before breakfast today",
+    "source_url": null,
+    "score": 653998.0,
+    "emotion": "Status",
+    "duration": 4.4,
+    "source": "wealth_wire",
+    "topic_tags": [
+      "habits",
+      "success"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "My trainer let me steal her five second abs fix",
+    "source_url": null,
+    "score": 291887.0,
+    "emotion": "Curiosity",
+    "duration": 3.6,
+    "source": "fit_lab",
+    "topic_tags": [
+      "fitness",
+      "abs"
+    ]
+  },
+  {
     "topic": "Life hacks",
     "raw_text": "Every dentist hides this brightness hack from you",
     "source_url": null,
@@ -23,6 +76,84 @@
     "topic_tags": [
       "dental",
       "beauty"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "Hollywood coaches practice this posture reset daily",
+    "source_url": null,
+    "score": 563781.0,
+    "emotion": "Status",
+    "duration": 4.3,
+    "source": "wellness_wave",
+    "topic_tags": [
+      "posture",
+      "health"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "He replicates billionaire mornings with a thrift haul",
+    "source_url": null,
+    "score": 402311.0,
+    "emotion": "Humor",
+    "duration": 4.7,
+    "source": "hustle_sketch",
+    "topic_tags": [
+      "humor",
+      "wealth"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "One stretch erases desk pain faster than massage",
+    "source_url": null,
+    "score": 387654.0,
+    "emotion": "Awe",
+    "duration": 4.0,
+    "source": "mobility_masters",
+    "topic_tags": [
+      "mobility",
+      "desk job"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "Watch me clone viral thumbnails with crayons only",
+    "source_url": null,
+    "score": 177443.0,
+    "emotion": "Humor",
+    "duration": 4.4,
+    "source": "creator_lab",
+    "topic_tags": [
+      "design",
+      "thumbnails"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "This hair stylist uses binder clips for perfect curls",
+    "source_url": null,
+    "score": 243887.0,
+    "emotion": "Curiosity",
+    "duration": 4.2,
+    "source": "beauty_blueprint",
+    "topic_tags": [
+      "beauty",
+      "hair"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "I replaced morning news with birdsong and profits followed",
+    "source_url": null,
+    "score": 344118.0,
+    "emotion": "Awe",
+    "duration": 4.5,
+    "source": "mind_reset",
+    "topic_tags": [
+      "mindfulness",
+      "productivity"
     ]
   },
   {
@@ -52,6 +183,19 @@
     ]
   },
   {
+    "topic": "AI productivity",
+    "raw_text": "This spreadsheet spits out your raise negotiation script",
+    "source_url": null,
+    "score": 467322.0,
+    "emotion": "Greed",
+    "duration": 4.7,
+    "source": "career_compass",
+    "topic_tags": [
+      "career",
+      "negotiation"
+    ]
+  },
+  {
     "topic": "Life hacks",
     "raw_text": "A lawyer decoded the parking signs big cities hide",
     "source_url": null,
@@ -65,8 +209,628 @@
     ]
   },
   {
+    "topic": "AI productivity",
+    "raw_text": "She wore compostable sneakers on the red carpet tonight",
+    "source_url": null,
+    "score": 228764.0,
+    "emotion": "Awe",
+    "duration": 3.5,
+    "source": "eco_inventor",
+    "topic_tags": [
+      "fashion",
+      "sustainability"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "Baristas cringe when you steam milk with rainwater",
+    "source_url": null,
+    "score": 184552.0,
+    "emotion": "Humor",
+    "duration": 4.2,
+    "source": "coffee_zone",
+    "topic_tags": [
+      "coffee",
+      "humor"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "He reverse engineered billionaire gratitude routines",
+    "source_url": null,
+    "score": 334219.0,
+    "emotion": "Status",
+    "duration": 4.8,
+    "source": "mind_reset",
+    "topic_tags": [
+      "gratitude",
+      "habits"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "Do this with ramen water and skip conditioner forever",
+    "source_url": null,
+    "score": 276889.0,
+    "emotion": "Curiosity",
+    "duration": 3.6,
+    "source": "beauty_blueprint",
+    "topic_tags": [
+      "beauty",
+      "hair"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "Investors lined up when my deck showed this donut chart",
+    "source_url": null,
+    "score": 202998.0,
+    "emotion": "Humor",
+    "duration": 4.1,
+    "source": "startup_signal",
+    "topic_tags": [
+      "pitch",
+      "fundraising"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "She clones celebrity outfits using thrift store curtains",
+    "source_url": null,
+    "score": 412337.0,
+    "emotion": "Awe",
+    "duration": 4.5,
+    "source": "fashion_flip",
+    "topic_tags": [
+      "fashion",
+      "diy"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "This rainy day script doubles Airbnb bookings overnight",
+    "source_url": null,
+    "score": 489114.0,
+    "emotion": "Greed",
+    "duration": 4.3,
+    "source": "host_hacks",
+    "topic_tags": [
+      "airbnb",
+      "hosting"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "Use leftover rice water to armor fragile nails",
+    "source_url": null,
+    "score": 274551.0,
+    "emotion": "Curiosity",
+    "duration": 3.4,
+    "source": "beauty_blueprint",
+    "topic_tags": [
+      "beauty",
+      "nails"
+    ]
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "Crypto miners secretly use laundromats for heat",
+    "source_url": null,
+    "score": 531887.0,
+    "emotion": "Shock",
+    "duration": 4.7,
+    "source": "crypto_oracle",
+    "topic_tags": [
+      "crypto",
+      "mining"
+    ]
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "Barbers line up clients using painter's tape tricks",
+    "source_url": null,
+    "score": 226341.0,
+    "emotion": "Status",
+    "duration": 4.1,
+    "source": "beauty_blueprint",
+    "topic_tags": [
+      "barber",
+      "tools"
+    ]
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "No one told you this about Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "Most people get Crypto trends wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "No one told you this about Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "Most people get Crypto trends wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "No one told you this about Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "This Crypto trends hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "Most people get Crypto trends wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "The fastest way to improve at Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "Stop doing this if you care about Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "The fastest way to improve at Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "This Crypto trends hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "New study just broke Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "This Crypto trends hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "The fastest way to improve at Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "The truth about Crypto trends in 5 seconds",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "This Crypto trends hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "This Crypto trends hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "Stop doing this if you care about Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "The fastest way to improve at Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "I tested 100+ Crypto trends tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "The fastest way to improve at Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "Stop doing this if you care about Crypto trends",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Crypto trends",
+    "raw_text": "Most people get Crypto trends wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "Stop doing this if you care about Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "New study just broke Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "This Motivation hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "New study just broke Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "Most people get Motivation wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "The fastest way to improve at Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "The fastest way to improve at Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "Most people get Motivation wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "I tested 100+ Motivation tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "Stop doing this if you care about Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "Most people get Motivation wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "I tested 100+ Motivation tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "I tested 100+ Motivation tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "The fastest way to improve at Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "The truth about Motivation in 5 seconds",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "Most people get Motivation wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "The fastest way to improve at Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "The fastest way to improve at Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "I tested 100+ Motivation tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "Stop doing this if you care about Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "Most people get Motivation wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "The truth about Motivation in 5 seconds",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "No one told you this about Motivation",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "I tested 100+ Motivation tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Motivation",
+    "raw_text": "This Motivation hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
     "topic": "Life hacks",
-    "raw_text": "Most people get Life hacks wrong. Here's why",
+    "raw_text": "No one told you this about Life hacks",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Life hacks",
+    "raw_text": "Stop doing this if you care about Life hacks",
     "source_url": null,
     "score": 0.0,
     "emotion": null,
@@ -96,7 +860,7 @@
   },
   {
     "topic": "Life hacks",
-    "raw_text": "Stop doing this if you care about Life hacks",
+    "raw_text": "The fastest way to improve at Life hacks",
     "source_url": null,
     "score": 0.0,
     "emotion": null,
@@ -107,16 +871,6 @@
   {
     "topic": "Life hacks",
     "raw_text": "Stop doing this if you care about Life hacks",
-    "source_url": null,
-    "score": 0.0,
-    "emotion": null,
-    "duration": 5.0,
-    "source": "synthetic",
-    "topic_tags": []
-  },
-  {
-    "topic": "Life hacks",
-    "raw_text": "This Life hacks hack changes everything",
     "source_url": null,
     "score": 0.0,
     "emotion": null,
@@ -136,26 +890,6 @@
   },
   {
     "topic": "Life hacks",
-    "raw_text": "New study just broke Life hacks",
-    "source_url": null,
-    "score": 0.0,
-    "emotion": null,
-    "duration": 5.0,
-    "source": "synthetic",
-    "topic_tags": []
-  },
-  {
-    "topic": "Life hacks",
-    "raw_text": "This Life hacks hack changes everything",
-    "source_url": null,
-    "score": 0.0,
-    "emotion": null,
-    "duration": 5.0,
-    "source": "synthetic",
-    "topic_tags": []
-  },
-  {
-    "topic": "Life hacks",
     "raw_text": "Stop doing this if you care about Life hacks",
     "source_url": null,
     "score": 0.0,
@@ -166,7 +900,7 @@
   },
   {
     "topic": "Life hacks",
-    "raw_text": "This Life hacks hack changes everything",
+    "raw_text": "New study just broke Life hacks",
     "source_url": null,
     "score": 0.0,
     "emotion": null,
@@ -186,7 +920,27 @@
   },
   {
     "topic": "Life hacks",
-    "raw_text": "Stop doing this if you care about Life hacks",
+    "raw_text": "The truth about Life hacks in 5 seconds",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Life hacks",
+    "raw_text": "The fastest way to improve at Life hacks",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Life hacks",
+    "raw_text": "I tested 100+ Life hacks tips so you don't have to",
     "source_url": null,
     "score": 0.0,
     "emotion": null,
@@ -216,37 +970,7 @@
   },
   {
     "topic": "Life hacks",
-    "raw_text": "This Life hacks hack changes everything",
-    "source_url": null,
-    "score": 0.0,
-    "emotion": null,
-    "duration": 5.0,
-    "source": "synthetic",
-    "topic_tags": []
-  },
-  {
-    "topic": "Life hacks",
-    "raw_text": "Stop doing this if you care about Life hacks",
-    "source_url": null,
-    "score": 0.0,
-    "emotion": null,
-    "duration": 5.0,
-    "source": "synthetic",
-    "topic_tags": []
-  },
-  {
-    "topic": "Life hacks",
-    "raw_text": "This Life hacks hack changes everything",
-    "source_url": null,
-    "score": 0.0,
-    "emotion": null,
-    "duration": 5.0,
-    "source": "synthetic",
-    "topic_tags": []
-  },
-  {
-    "topic": "Life hacks",
-    "raw_text": "The fastest way to improve at Life hacks",
+    "raw_text": "No one told you this about Life hacks",
     "source_url": null,
     "score": 0.0,
     "emotion": null,
@@ -257,6 +981,346 @@
   {
     "topic": "Life hacks",
     "raw_text": "I tested 100+ Life hacks tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Life hacks",
+    "raw_text": "New study just broke Life hacks",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Life hacks",
+    "raw_text": "New study just broke Life hacks",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Life hacks",
+    "raw_text": "New study just broke Life hacks",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "No one told you this about AI productivity",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "This AI productivity hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "New study just broke AI productivity",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "I tested 100+ AI productivity tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "No one told you this about AI productivity",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "AI productivity",
+    "raw_text": "I tested 100+ AI productivity tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Stop doing this if you care about Fitness myths",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Stop doing this if you care about Fitness myths",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "New study just broke Fitness myths",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "This Fitness myths hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "No one told you this about Fitness myths",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Most people get Fitness myths wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "This Fitness myths hack changes everything",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "The truth about Fitness myths in 5 seconds",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "The truth about Fitness myths in 5 seconds",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Most people get Fitness myths wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Most people get Fitness myths wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Stop doing this if you care about Fitness myths",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "No one told you this about Fitness myths",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Most people get Fitness myths wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "I tested 100+ Fitness myths tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "I tested 100+ Fitness myths tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Most people get Fitness myths wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "I tested 100+ Fitness myths tips so you don't have to",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Most people get Fitness myths wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Most people get Fitness myths wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "No one told you this about Fitness myths",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Stop doing this if you care about Fitness myths",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "Most people get Fitness myths wrong. Here's why",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "New study just broke Fitness myths",
+    "source_url": null,
+    "score": 0.0,
+    "emotion": null,
+    "duration": 5.0,
+    "source": "synthetic",
+    "topic_tags": []
+  },
+  {
+    "topic": "Fitness myths",
+    "raw_text": "No one told you this about Fitness myths",
     "source_url": null,
     "score": 0.0,
     "emotion": null,
