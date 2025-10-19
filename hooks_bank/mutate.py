@@ -5,6 +5,7 @@ import subprocess
 import hashlib
 from typing import Dict, List, Optional
 from state import has_hash, add_hash
+from utils import err
 
 
 def should_wake_llm(queue_size: int, min_queue: int) -> bool:
@@ -92,7 +93,8 @@ def _try_llm_call(cmd: Optional[str], topic: str, hooks: List[Dict]) -> Optional
             if text:
                 variants.append({'text': text, 'emotion': emotion})
         return variants or None
-    except Exception:
+    except Exception as exc:
+        err(f"LLM mutation command failed: {exc}")
         return None
 
 
