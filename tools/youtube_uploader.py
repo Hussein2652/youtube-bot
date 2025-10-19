@@ -90,20 +90,29 @@ def set_thumbnail(youtube, video_id: str, thumb_path: str) -> None:
 
 def parse_args(argv: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Upload a video to YouTube with thumbnail support')
-    parser.add_argument('--file', required=True, help='MP4 file path')
-    parser.add_argument('--thumb', required=True, help='Thumbnail image path')
-    parser.add_argument('--title', required=True, help='Video title')
+    parser.add_argument('--file', help='MP4 file path')
+    parser.add_argument('--thumb', help='Thumbnail image path')
+    parser.add_argument('--title', help='Video title')
     parser.add_argument('--desc', default='', help='Video description')
     parser.add_argument('--tags', default='', help='Comma separated list of tags')
     parser.add_argument('--privacy', default=os.getenv('PRIVACY_STATUS', 'public'), choices=['public', 'unlisted', 'private'])
     parser.add_argument('--category', default=os.getenv('CATEGORY_ID', '24'))
     parser.add_argument('--retry', type=int, default=5)
+    parser.add_argument('--auth-only', action='store_true', help='Only perform OAuth flow, no upload')
     return parser.parse_args(argv)
 
 
 def main(argv: List[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     creds = _load_credentials()
+    if args.auth_only:
+        print(json.dumps({"status": "authenticated"}))
+        return 0
+
+    missing = [name for name in ("file", "thumb", "title") if getattr(args, name) is None]
+    if missing:
+        print(json.dumps({"error": f"Missing required arguments: {', '.join(missing)}"}))
+        return 1
     youtube = build('youtube', 'v3', credentials=creds)
     try:
         video_id = resumable_upload(youtube, args)

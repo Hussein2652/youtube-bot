@@ -1,3 +1,4 @@
+import os
 import random
 from typing import Dict, List
 from utils import word_count, truncate_words, estimate_duration_sec
@@ -9,6 +10,10 @@ CTA_BANK = [
     "Save this before it disappears.",
     "Drop a 🔥 if you want more.",
 ]
+
+ENV_CTA = [s.strip() for s in os.getenv("CTA_BANK", "").split(",") if s.strip()]
+if ENV_CTA:
+    CTA_BANK = ENV_CTA
 
 
 EMOTION_TEMPLATES = {

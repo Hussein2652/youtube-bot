@@ -76,6 +76,8 @@ def _try_llm_call(cmd: Optional[str], topic: str, hooks: List[Dict]) -> Optional
         variants = []
         if isinstance(arr, dict) and isinstance(arr.get('variants'), list):
             items = arr['variants']
+        elif isinstance(arr, dict) and isinstance(arr.get('mutations'), list):
+            items = arr['mutations']
         elif isinstance(arr, list):
             items = arr
         else:

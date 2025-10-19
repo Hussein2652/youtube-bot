@@ -76,7 +76,7 @@ def load_config() -> Config:
         min_queue=getenv_int('MIN_QUEUE', 6),
         daily_target_min=getenv_int('DAILY_TARGET_MIN', 10),
         daily_target_max=getenv_int('DAILY_TARGET_MAX', 20),
-        schedule_tz=os.getenv('SCHEDULE_TIMEZONE', 'UTC'),
+        schedule_tz=os.getenv('SCHEDULE_TIMEZONE', os.getenv('TZ', 'UTC')),
         ffmpeg_bin=os.getenv('FFMPEG_BIN', 'ffmpeg').strip(),
         piper_bin=(os.getenv('PIPER_BIN') or '').strip() or None,
         piper_voice=(os.getenv('PIPER_VOICE') or '').strip() or None,

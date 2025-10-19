@@ -1,120 +1,137 @@
 #!/usr/bin/env python3
-"""Local JSON-in/JSON-out hook mutator for GPT-OSS 20B contract."""
-
+import argparse
 import json
 import os
-import random
 import sys
-from typing import Dict, List, Set
+from typing import List, Dict
+
+import requests
 
 
-REPLACEMENTS = {
-    'hack': ['move', 'tactic', 'switch'],
-    'money': ['cash', 'capital', 'stack'],
-    'tools': ['systems', 'engines', 'kits'],
-    'illegal': ['forbidden', 'taboo', 'off limits'],
-    'secret': ['hidden', 'covert', 'quiet'],
-    'habit': ['ritual', 'loop', 'pattern'],
-    'side': ['shadow', 'stealth', 'quiet'],
-    'hustle': ['grind', 'play', 'scheme'],
-    'viral': ['explosive', 'trend ready', 'shareable'],
-    'ai': ['machine', 'bot', 'neural'],
-    'investors': ['backers', 'angels', 'funders'],
-    'sleep': ['rest', 'dream', 'lights-out'],
-    'five': ['5'],
-}
+def read_payload() -> Dict:
+    raw = sys.stdin.read().strip()
+    if not raw:
+        return {}
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid JSON payload: {exc}")
 
 
-def mutate_text(text: str, salt: int) -> str:
-    words = text.split()
-    random.seed(salt)
-    mutated: List[str] = []
-    for w in words:
-        key = ''.join(ch for ch in w.lower() if ch.isalpha())
-        if key in REPLACEMENTS:
-            mutated.append(random.choice(REPLACEMENTS[key]))
-        else:
-            mutated.append(w)
-    # tweak verbs by swapping order of first two words when possible
-    if len(mutated) > 4:
-        mutated[0], mutated[1] = mutated[1], mutated[0]
-    text_out = ' '.join(mutated)
-    tokens = text_out.split()
-    if len(tokens) > 12:
-        text_out = ' '.join(tokens[:12])
-    return text_out.strip()
+def build_prompt(payload: Dict) -> str:
+    topic = payload.get("topic", "")
+    constraints = payload.get("constraints", {})
+    seeds = payload.get("seeds", [])
+    count = payload.get("count", 10)
+
+    seed_lines = []
+    for seed in seeds:
+        txt = seed.get("text") or ""
+        emo = seed.get("emotion") or ""
+        if txt:
+            seed_lines.append(f"- {txt} :: emotion={emo}")
+    seed_block = "\n".join(seed_lines) or "- (none provided)"
+
+    max_words = constraints.get("max_words", 12)
+    instructions = (
+        f"Topic: {topic}\n"
+        f"Return {count} mutated hooks in JSON -> {{\"variants\":[{{\"text\":...,\"emotion\":...}},...]}}\n"
+        f"Constraints:\n"
+        f"- Keep emotion from the matching seed.\n"
+        f"- Preserve hook structure and pacing.\n"
+        f"- Swap nouns/verbs for fresh wording.\n"
+        f"- Hard limit {max_words} words.\n"
+        f"- No duplicates vs seeds or among variants.\n\n"
+        f"Seeds:\n{seed_block}\n"
+    )
+    return instructions
+
+
+def call_llm(host: str, port: int, model: str, prompt: str) -> str:
+    url = f"http://{host}:{port}/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {os.getenv('VLLM_API_KEY', 'dummy')}"}
+    body = {
+        "model": model,
+        "messages": [
+            {
+                "role": "system",
+                "content": "You mutate viral hooks. Reply with compact JSON only."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "temperature": 0.7,
+        "max_tokens": 200,
+    }
+    resp = requests.post(url, headers=headers, json=body, timeout=60)
+    resp.raise_for_status()
+    data = resp.json()
+    return data["choices"][0]["message"]["content"].strip()
+
+
+def parse_variants(text: str, fallback_emotion: str = None) -> List[Dict[str, str]]:
+    variants: List[Dict[str, str]] = []
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, dict) and isinstance(parsed.get("variants"), list):
+            for item in parsed["variants"]:
+                if isinstance(item, dict):
+                    txt = str(item.get("text", "")).strip()
+                    emo = item.get("emotion") or fallback_emotion
+                else:
+                    txt = str(item).strip()
+                    emo = fallback_emotion
+                if txt:
+                    variants.append({"text": txt, "emotion": emo})
+            return variants
+    except json.JSONDecodeError:
+        pass
+
+    # fallback: split by newline
+    for line in text.splitlines():
+        line = line.strip("- •\t ")
+        if not line:
+            continue
+        parts = line.split("::", 1)
+        txt = parts[0].strip()
+        emo = fallback_emotion
+        if len(parts) == 2 and "emotion=" in parts[1]:
+            emo = parts[1].split("emotion=", 1)[1].strip()
+        if txt:
+            variants.append({"text": txt, "emotion": emo})
+    return variants
 
 
 def main() -> int:
-    raw = sys.stdin.read().strip()
-    if not raw:
-        print(json.dumps({'error': 'empty input'}), file=sys.stderr)
-        return 1
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", default=os.getenv("LLM_HOST", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(os.getenv("LLM_PORT", "8000")))
+    parser.add_argument("--model", default=os.getenv("LLM_MODEL", "meta-llama-3-8b-instruct"))
+    args = parser.parse_args()
+
     try:
-        payload = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        print(json.dumps({'error': f'invalid json: {exc}'}), file=sys.stderr)
+        payload = read_payload()
+    except ValueError as exc:
+        print(json.dumps({"error": str(exc)}))
         return 1
 
-    if payload.get('task') != 'mutate_hooks':
-        print(json.dumps({'error': 'unsupported task'}), file=sys.stderr)
+    try:
+        prompt = build_prompt(payload)
+        response = call_llm(args.host, args.port, args.model, prompt)
+        seeds = payload.get("seeds") or []
+        fallback_emotion = seeds[0].get("emotion") if seeds else None
+        variants = parse_variants(response, fallback_emotion=fallback_emotion)
+        if payload.get("count"):
+            desired = int(payload["count"])
+            variants = variants[:desired]
+        print(json.dumps({"variants": variants}, ensure_ascii=False))
+        return 0
+    except Exception as exc:
+        print(json.dumps({"error": str(exc)}))
         return 2
 
-    requested_model = payload.get('model')
-    env_model = os.getenv('LLM_MODEL', '').strip()
-    if env_model and requested_model and requested_model != env_model:
-        print(json.dumps({'error': f"model {requested_model} unavailable"}), file=sys.stderr)
-        return 3
-    if not env_model:
-        print(json.dumps({'error': 'LLM_MODEL environment variable not set'}), file=sys.stderr)
-        return 3
 
-    count = int(payload.get('count') or 0) or 10
-    seeds = payload.get('seeds') or []
-    constraints: Dict = payload.get('constraints') or {}
-    max_words = int(constraints.get('max_words') or 12)
-
-    seed_texts: Set[str] = set()
-    for seed in seeds:
-        text = (seed.get('text') or '').strip()
-        if text:
-            seed_texts.add(text.lower())
-
-    variants = []
-    seen: Set[str] = set(seed_texts)
-    base = seeds or [{'text': payload.get('topic', '')}]
-
-    salt = 0
-    while len(variants) < count and salt < count * 10:
-        template = base[salt % len(base)]
-        source_text = template.get('text', '')
-        if not source_text:
-            salt += 1
-            continue
-        mutated = mutate_text(source_text, salt)
-        tokens = mutated.split()
-        if len(tokens) > max_words:
-            mutated = ' '.join(tokens[:max_words])
-        if mutated.lower() in seen or not mutated:
-            salt += 1
-            continue
-        seen.add(mutated.lower())
-        variants.append({'text': mutated, 'emotion': template.get('emotion')})
-        salt += 1
-
-    fallback_topic = payload.get('topic', 'Viral idea')
-    while len(variants) < count:
-        filler = f"{fallback_topic.split()[0]} remix {len(variants)+1}"
-        filler = ' '.join(filler.split()[:max_words])
-        if filler.lower() in seen:
-            filler = f"{fallback_topic.split()[0]} hook {len(variants)+1}"
-        if filler.lower() not in seen:
-            variants.append({'text': filler, 'emotion': seeds[0].get('emotion') if seeds else None})
-            seen.add(filler.lower())
-
-    print(json.dumps({'variants': variants[:count]}))
-    return 0
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

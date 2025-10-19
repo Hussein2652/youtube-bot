@@ -16,7 +16,11 @@ def synthesize_with_command(tts_cmd: Optional[str], text: str, out_wav: str, *, 
             tmp_path = tmp.name
         cmd = template.format(
             input_txt=tmp_path,
+            text_file=tmp_path,
+            infile=tmp_path,
             output_wav=out_wav,
+            outfile=out_wav,
+            output=out_wav,
             voice=piper_voice or '',
             piper_voice=piper_voice or '',
             piper_bin=piper_bin or '',

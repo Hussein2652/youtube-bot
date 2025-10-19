@@ -126,7 +126,17 @@ def _sd_make_image(cmd: Optional[str], prompt: str, out_path: str) -> bool:
     if not cmd:
         return False
     try:
-        proc = subprocess.run(f"{cmd} --prompt {prompt!r} --output {out_path!r}", shell=True, check=False)
+        if "{" in cmd:
+            formatted = cmd.format(
+                prompt=prompt,
+                outfile=out_path,
+                out=out_path,
+                output=out_path,
+                output_png=out_path,
+            )
+            proc = subprocess.run(formatted, shell=True, check=False)
+        else:
+            proc = subprocess.run(f"{cmd} --prompt {prompt!r} --output {out_path!r}", shell=True, check=False)
         return proc.returncode == 0 and os.path.exists(out_path)
     except Exception:
         return False

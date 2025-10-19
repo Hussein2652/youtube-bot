@@ -11,7 +11,9 @@ COPY . /app
 RUN pip install --no-cache-dir \
     numpy \
     google-api-python-client \
-    google-auth-oauthlib
+    google-auth-oauthlib \
+    pillow \
+    requests
 
 # Optional: add your Piper binary/model into the image or mount at runtime
 
