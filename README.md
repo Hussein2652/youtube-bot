@@ -112,21 +112,40 @@ Or group entries by tag key:
 
 Relative paths are resolved against `FOOTAGE_DIR` (or the index file). When the index is missing the bot still scans `FOOTAGE_DIR` / `FOOTAGE_GLOB` and randomly cycles through any footage before falling back to fractal motion.
 
-### New: Trend→Hook→Video pipeline
+### Trend→Hook→Video pipeline (free)
 
-1. Configure regions, sources, and hook banks in `.env`:
-   ```
-   TREND_REGIONS=US,GB
-   TREND_SOURCES=google_trends,youtube_trending
-   HOOK_PROVIDER_URLS=https://your-hook-bank/3s.jsonl,https://your-hook-bank/5s.csv
-   ```
-2. Run the orchestrator once to test the flow:
-   ```
-   python3 pipeline_trend_to_video.py
-   ```
-3. Inspect outputs under `data/video/` and `data/scripts/title.txt`.
+1) In `.env` set:
+```
+TREND_REGIONS=US
+TREND_SOURCES=google_trends,youtube_trending,reddit_hot
+HOOK_PROVIDER_URLS=file://$PWD/assets/sources/seed_hooks.jsonl  # replace with your hook bank(s)
+VID_ENGINE_ORDER=stockfx  # until ComfyUI is ready
 
-**Quality ladder:** `video_gen.pipeline` tries AnimateDiff via ComfyUI first, then CogVideoX (placeholder hook), then a stock+FX ffmpeg compositor so the pipeline always returns a usable short even if the heavy engines are offline.
+```
+2) Seed a local hook file for first run:
+```
+mkdir -p assets/sources
+cat > assets/sources/seed_hooks.jsonl << 'EOF'
+{"text":"This AI trick writes your CV in 10 seconds","seconds":3}
+{"text":"Phone camera hack nobody tells you","seconds":5}
+EOF
+
+```
+3) Run:
+```
+python3 pipeline_trend_to_video.py
+
+```
+4) Outputs: `data/video/trend_hook_001.mp4`, `data/scripts/title.txt`.
+5) When ready, start **ComfyUI** and set `VID_ENGINE_ORDER=animatediff,stockfx`.
+
+### Python dependencies (minimum)
+
+Install these locally (or bake into your Docker image):
+
+```
+pip install pytrends requests pillow numpy
+```
 
 Go-Live Checklist
 - Hook sources live under `assets/sources/` (`shorts_hooks.ndjson`, `shorts_hooks.json`) and feed the miner immediately.
