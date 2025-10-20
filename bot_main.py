@@ -121,6 +121,9 @@ def main() -> None:
             music_vol_db=cfg.bg_music_vol_db,
             sd_bg_cmd=cfg.sd_bg_cmd,
             sd_thumb_cmd=cfg.sd_thumb_cmd,
+            footage_dir=cfg.footage_dir,
+            footage_glob=cfg.footage_glob,
+            fallback_tts_voice=cfg.fallback_tts_voice,
         )
         if not gen.get('ok'):
             log(f"Generation failed: {gen}")

@@ -25,6 +25,14 @@ Quick Start
 3) Optional tools: Piper TTS (`PIPER_BIN`), Stable Diffusion generator (`SD_CMD`), uploader (`YOUTUBE_UPLOADER_CMD`).
 4) Run: `python3 bot_main.py`
 
+Operational Notes
+- The fallback hook mutator now rotates vocabulary per attempt so the bot keeps producing fresh scripts even after the dedupe store (`data/state.json`) fills up.
+- A successful generation run leaves new assets in `data/video/`, `data/audio/`, and `data/thumbs/`, plus queue rows in `data/bot.db` (check with `sqlite3 data/bot.db "select id,status,scheduled_for from queue order by id desc limit 5;"`).
+- To enable uploads, point `YOUTUBE_UPLOADER_CMD` at your uploader CLI (see `.env.example`). The bot automatically respects privacy/category flags and exponential backoff if the command fails.
+- If you want to retry uploads manually, run `python3 tools/youtube_uploader.py --file <mp4> --thumb <png> --title "..."`
+- Drop vertical b-roll clips under `assets/footage/` (or adjust `FOOTAGE_DIR` / `FOOTAGE_GLOB`) to have renders crop, loop, and grade real footage. When no footage is available the generator falls back to animated fractal motion instead of static color blocks.
+- Voiceovers now fall back to ffmpeg's flite voice (`FALLBACK_TTS_VOICE`) after checking your `TTS_CMD` or Piper config, so every short ships with narration before we ever consider silence.
+
 Key Env Vars
 - DATA_DIR: persistent working directory (default: data)
 - MIN_QUEUE: wake LLM only when queue below this (default: 6)
@@ -40,6 +48,8 @@ Key Env Vars
 - PRIVACY_STATUS, CATEGORY_ID: default upload metadata
 - EMBEDDINGS_BACKEND / EMB_MODEL_DIR / EMB_BATCH / EMB_DEVICE / TOPK_HOOKS / SIM_THRESHOLD: embedding backend, asset dir, batch size, device preference, ranking parameters
 - MUSIC_DIR, BG_MUSIC_GLOB, BG_MUSIC_VOL_DB: background music folders, glob pattern, and target LUFS offset
+- FOOTAGE_DIR / FOOTAGE_GLOB: optional local b-roll directory/glob for vertical background footage
+- FALLBACK_TTS_VOICE: ffmpeg flite voice name to use when custom TTS is unavailable
 - MINER_CACHE_TTL_SEC / MINER_RATE_PER_KEY_SEC / MINER_SOURCE_GLOB: hook miner controls (cache + rate limit)
 - ANALYTICS_CMD: analytics CLI (default `python3 tools/analytics_puller.py --since 2d --out data/metrics_latest.json`)
 
@@ -64,7 +74,7 @@ Supervisor Loop (bot_main.py)
 
 Notes
 - LLM is never called unless `queue_size < MIN_QUEUE`.
-- If Piper/SD not configured, generator falls back to deterministic ffmpeg (solid background + text overlay + silent/tts audio) to keep pipeline functional.
+- If you skip Piper/SD, the generator still adds motion backgrounds (fractals) and synthesizes narration via flite so exports feel like real shorts out of the box.
 - Scheduler defaults to Cairo timezone; adjust cadence in `schedule_manager/scheduler.py` if needed.
 - Run `python3 tools/youtube_uploader.py --help` after placing OAuth secrets in `./credentials/client_secret.json`; tokens cache to `./credentials/token.json`.
 - Run `python3 tools/analytics_puller.py --help` to confirm metrics fetch works; update `ANALYTICS_CMD` if you change arguments.

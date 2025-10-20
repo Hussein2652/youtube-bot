@@ -12,29 +12,59 @@ def should_wake_llm(queue_size: int, min_queue: int) -> bool:
     return queue_size < min_queue
 
 
-def _local_mutate_rules(text: str) -> str:
-    # Deterministic, emotion-preserving tweaks when LLM not available
-    # - front-load urgency, tighten phrasing, add concrete framing
+def _local_mutate_rules(text: str, variant: int = 0) -> str:
+    """Deterministic, low-resource hook mutations that rotate vocabulary for uniqueness."""
+    # Normalize punctuation and build replacements with variant-aware cycling
     t = text.strip()
     if t.endswith(':'):
         t = t[:-1]
     t = t.replace('everyone', 'most people').replace('No one', 'Almost no one')
-    # Keep it short (<= 12 words), change some nouns/verbs simplisticly
-    repl = {
-        'hack': 'tactic', 'tips': 'moves', 'truth': 'signal', 'wrong': 'off', 'stop': 'ditch',
-        'improve': 'level-up', 'study': 'data', 'told': 'revealed', 'fastest': 'quickest'
+
+    replacements = {
+        'hack': ['tactic', 'play', 'angle', 'move'],
+        'tips': ['moves', 'plays', 'angles', 'fixes'],
+        'truth': ['signal', 'intel', 'inside', 'fact'],
+        'wrong': ['off', 'flawed', 'broken', 'misaligned'],
+        'stop': ['ditch', 'drop', 'scrap', 'skip'],
+        'improve': ['level-up', 'boost', 'sharpen', 'upgrade'],
+        'study': ['data', 'research', 'report', 'science'],
+        'told': ['revealed', 'shared', 'exposed', 'showed'],
+        'fastest': ['quickest', 'speediest', 'shortest', 'fast-track'],
+        'changes': ['shifts', 'flips', 'rewires', 'reshapes'],
+        'everything': ['all', 'it all', 'the game', 'your day'],
     }
+
+    seed = abs(hash(text))
     words = t.split()
-    new = []
+    rotated: List[str] = []
+    salt = variant
     for w in words:
         key = w.lower().strip(':,!.?')
-        new.append(repl.get(key, w))
-        if len(new) >= 12:
+        opts = replacements.get(key)
+        if opts:
+            idx = (seed + salt) % len(opts)
+            repl = opts[idx]
+            if w[:1].isupper():
+                repl = repl.capitalize()
+            rotated.append(repl)
+            salt += 1
+        else:
+            rotated.append(w)
+        if len(rotated) >= 16:  # allow extra words; caller trims to 12 later
             break
-    s = ' '.join(new)
-    if not s.lower().startswith('watch'):
-        s = 'Watch: ' + s
-    return s
+
+    core = ' '.join(rotated)
+    prefixes = ['Watch', 'Heads up', 'Real talk', 'Listen up', 'Quick tip']
+    prefix = prefixes[(seed + variant) % len(prefixes)]
+    if not core.lower().startswith(prefix.lower()):
+        core = f"{prefix}: {core}"
+
+    suffixes = ['', 'now', 'today', 'tonight', 'fast']
+    suffix = suffixes[(seed // 7 + variant) % len(suffixes)]
+    if suffix and suffix not in core.lower():
+        core = f"{core} {suffix}"
+
+    return core.strip()
 
 
 def _try_llm_call(cmd: Optional[str], topic: str, hooks: List[Dict]) -> Optional[List[Dict[str, str]]]:
@@ -113,35 +143,45 @@ def mutate_hooks(topic: str, hooks: List[Dict], llm_cmd: Optional[str], allow_ll
     if not mutated_texts:
         mutated_texts = [
             {
-                'text': _local_mutate_rules(h['raw_text']),
+                'text': _local_mutate_rules(h['raw_text'], variant=i),
                 'emotion': h.get('emotion')
             }
-            for h in selected
+            for i, h in enumerate(selected)
         ]
 
     seed_set = set(h['raw_text'].strip().lower() for h in selected)
     seen_hashes = set()
     mutated = []
     for i, h in enumerate(selected):
-        entry = mutated_texts[i] if i < len(mutated_texts) else {
-            'text': _local_mutate_rules(h['raw_text']),
-            'emotion': h.get('emotion')
-        }
-        cand = entry.get('text') or _local_mutate_rules(h['raw_text'])
-        # enforce <=12 words
-        cand = ' '.join(cand.split()[:12])
-        nh = _norm_hash(cand)
-        # dedupe vs seeds and prior hash set
-        if cand.strip().lower() in seed_set:
+        entry = mutated_texts[i] if i < len(mutated_texts) else None
+        emotion = h.get('emotion')
+        max_attempts = 6
+        accepted = False
+        for attempt in range(max_attempts):
+            if attempt == 0 and entry:
+                cand = entry.get('text') or ''
+                emotion = entry.get('emotion', emotion)
+            else:
+                cand = _local_mutate_rules(h['raw_text'], variant=i + attempt)
+                emotion = h.get('emotion')
+            cand = ' '.join(cand.split()[:12]).strip()
+            if not cand:
+                continue
+            nh = _norm_hash(cand)
+            if cand.lower() in seed_set:
+                continue
+            if data_dir and has_hash(data_dir, nh, topic=topic):
+                continue
+            if nh in seen_hashes:
+                continue
+            seen_hashes.add(nh)
+            if data_dir:
+                add_hash(data_dir, nh, topic=topic)
+            mutated.append({**h, 'mutated_text': cand, 'emotion': emotion})
+            accepted = True
+            break
+        if not accepted:
             continue
-        if data_dir and has_hash(data_dir, nh, topic=topic):
-            continue
-        if nh in seen_hashes:
-            continue
-        seen_hashes.add(nh)
-        if data_dir:
-            add_hash(data_dir, nh, topic=topic)
-        mutated.append({**h, 'mutated_text': cand, 'emotion': entry.get('emotion', h.get('emotion'))})
     return {
         'ok': True,
         'topic': topic,

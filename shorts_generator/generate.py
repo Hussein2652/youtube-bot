@@ -1,8 +1,9 @@
 import glob
 import os
 import random
-from typing import Dict, List, Optional
 import subprocess
+from typing import Dict, List, Optional
+
 from utils import ensure_dir, run_ffmpeg, synthesize_with_piper, synthesize_with_command, log
 
 
@@ -44,14 +45,83 @@ def _segment_text_filters(segments: List[Dict], safe_top: int = 200) -> str:
     return ','.join(filters)
 
 
+def _collect_footage(footage_dir: Optional[str], footage_glob: Optional[str]) -> List[str]:
+    candidates: List[str] = []
+    if footage_glob:
+        candidates.extend(glob.glob(os.path.expandvars(footage_glob), recursive=True))
+    if footage_dir and os.path.isdir(footage_dir):
+        for root, _dirs, files in os.walk(footage_dir):
+            for fn in files:
+                if fn.lower().endswith(('.mp4', '.mov', '.mkv', '.webm', '.m4v')):
+                    candidates.append(os.path.join(root, fn))
+    dedup = []
+    seen = set()
+    for path in candidates:
+        rp = os.path.realpath(path)
+        if rp not in seen and os.path.isfile(rp):
+            dedup.append(rp)
+            seen.add(rp)
+    return dedup
+
+
+def _make_footage_bg(ffmpeg_bin: str, source_path: str, out_path: str, duration: float) -> int:
+    # Loop and crop the footage into 9:16 with subtle motion filters
+    vf = (
+        "scale=1080:1920:force_original_aspect_ratio=cover,"
+        "crop=1080:1920,"
+        "setsar=1:1,"
+        "fps=30,"
+        "eq=saturation=1.25:contrast=1.05"
+    )
+    args = [
+        '-stream_loop', '-1',
+        '-i', source_path,
+        '-vf', vf,
+        '-t', f'{duration:.2f}',
+        '-an',
+        out_path,
+    ]
+    return run_ffmpeg(ffmpeg_bin, args)
+
+
+def _make_fractal_bg(ffmpeg_bin: str, out_path: str, duration: float) -> int:
+    # Dynamic fractal fallback to avoid flat color screens
+    start_x = random.uniform(-1.0, 0.5)
+    start_y = random.uniform(-0.8, 0.8)
+    start_scale = random.uniform(1.2, 2.8)
+    end_scale = random.uniform(0.2, 0.6)
+    morph = random.uniform(0.003, 0.02)
+    mandelbrot = (
+        f"mandelbrot=s=480x854:rate=30:start_x={start_x}:start_y={start_y}:start_scale={start_scale}:"
+        f"end_scale={end_scale}:morphxf={morph}:morphyf={morph * 1.3}:outer=iteration_count"
+    )
+    vf = "scale=1080:1920,setsar=1:1,fps=30,hue=h='2*PI*t':s=1.4"
+    args = [
+        '-f', 'lavfi',
+        '-i', mandelbrot,
+        '-vf', vf,
+        '-t', f'{duration:.2f}',
+        out_path,
+    ]
+    return run_ffmpeg(ffmpeg_bin, args)
+
+
 def _make_bg_video(ffmpeg_bin: str, out_path: str, duration: float) -> int:
-    # Solid background color (varies) for SD fallback
     colors = ['#0ea5e9', '#ef4444', '#22c55e', '#a855f7', '#f59e0b']
     color = random.choice(colors)
-    return run_ffmpeg(ffmpeg_bin, [
-        '-f', 'lavfi', '-i', f"color=c={color}:s=1080x1920:d={duration:.2f}",
-        '-r', '30', out_path
-    ])
+    noise_seed = random.randint(0, 9999)
+    vf = (
+        f"noise=alls=1080x1920:all_seed={noise_seed}:all_strength=8:"
+        "all_flags=u+t,format=yuv420p"
+    )
+    args = [
+        '-f', 'lavfi',
+        '-i', f"color=c={color}:s=1080x1920:d={duration:.2f}",
+        '-vf', vf,
+        '-r', '30',
+        out_path,
+    ]
+    return run_ffmpeg(ffmpeg_bin, args)
 
 
 def _burn_segments(ffmpeg_bin: str, in_video: str, segments: List[Dict], out_video: str) -> int:
@@ -82,16 +152,24 @@ def _find_music(music_dir: Optional[str], music_glob: Optional[str]) -> Optional
     return random.choice(candidates)
 
 
-def _mux_audio(ffmpeg_bin: str, in_video: str, voice_wav: str, out_video: str, music_path: Optional[str], music_vol_db: float) -> int:
+def _mux_audio(
+    ffmpeg_bin: str,
+    in_video: str,
+    voice_wav: str,
+    out_video: str,
+    music_path: Optional[str],
+    music_vol_db: float,
+    target_duration: float,
+) -> int:
     if music_path and os.path.exists(music_path):
         filter_complex = (
             "[1:a]loudnorm=I=-16:TP=-1.5:LRA=11:print_format=none[voice];"
             "[2:a]loudnorm=I={mv}:TP=-2.0:LRA=9:print_format=none[music_norm];"
             "[music_norm][voice]sidechaincompress=threshold=-30dB:ratio=8:attack=5:release=400:makeup=0[music_duck];"
             "[voice][music_duck]amix=inputs=2:weights=1 0.35:duration=first:dropout_transition=2[mix];"
-            "[mix]volume=1.0,aresample=async=1[a]"
+            "[mix]volume=1.0,aresample=async=1,apad=pad_dur={dur}[a]"
         )
-        filter_complex = filter_complex.format(mv=f"{music_vol_db}dB")
+        filter_complex = filter_complex.format(mv=f"{music_vol_db}dB", dur=f"{target_duration:.2f}")
         return run_ffmpeg(ffmpeg_bin, [
             '-i', in_video,
             '-i', voice_wav,
@@ -104,7 +182,7 @@ def _mux_audio(ffmpeg_bin: str, in_video: str, voice_wav: str, out_video: str, m
         return run_ffmpeg(ffmpeg_bin, [
             '-i', in_video,
             '-i', voice_wav,
-            '-filter_complex', "[1:a]loudnorm=I=-16:TP=-1.5:LRA=11:print_format=none[a]",
+            '-filter_complex', f"[1:a]loudnorm=I=-16:TP=-1.5:LRA=11:print_format=none,apad=pad_dur={target_duration:.2f}[a]",
             '-map', '0:v', '-map', '[a]',
             '-c:v', 'copy', '-c:a', 'aac', '-shortest', out_video
         ])
@@ -113,6 +191,24 @@ def _mux_audio(ffmpeg_bin: str, in_video: str, voice_wav: str, out_video: str, m
 def _make_silence(ffmpeg_bin: str, out_wav: str, duration: float) -> int:
     return run_ffmpeg(ffmpeg_bin, [
         '-f', 'lavfi', '-i', f"anullsrc=r=48000:cl=stereo", '-t', f"{duration:.2f}", out_wav
+    ])
+
+
+def _escape_filter_text(text: str) -> str:
+    return text.replace('\\', '\\\\').replace(':', '\\:').replace("'", "\\'").replace(',', '\\,')
+
+
+def _make_flite_voice(ffmpeg_bin: str, text: str, out_wav: str, voice: Optional[str]) -> int:
+    safe = _escape_filter_text(text)
+    flite = f"flite=text='{safe}'"
+    if voice:
+        flite += f":voice={voice}"
+    return run_ffmpeg(ffmpeg_bin, [
+        '-f', 'lavfi',
+        '-i', flite,
+        '-c:a', 'pcm_s16le',
+        '-ar', '44100',
+        out_wav,
     ])
 
 
@@ -163,6 +259,9 @@ def generate_short(
     music_vol_db: float = -18.0,
     sd_bg_cmd: Optional[str] = None,
     sd_thumb_cmd: Optional[str] = None,
+    footage_dir: Optional[str] = None,
+    footage_glob: Optional[str] = None,
+    fallback_tts_voice: Optional[str] = 'slt',
 ) -> Dict:
     ensure_dir(os.path.join(data_dir, 'video'))
     ensure_dir(os.path.join(data_dir, 'audio'))
@@ -175,15 +274,35 @@ def generate_short(
     out_wav = os.path.join(data_dir, 'audio', f'{base}.wav')
     out_png = os.path.join(data_dir, 'thumbs', f'{base}.png')
 
-    # Background using SD1.5 if available, else color
+    # Background preference: user footage → SD → fractal → animated color
     final_dur = max(7.0, min(15.0, duration_sec))
     sd_img = os.path.join(data_dir, 'video', f'{base}_bg.png')
     used_sd = False
-    if sd_bg_cmd and _sd_make_image(sd_bg_cmd, prompt=script_text, out_path=sd_img):
+    bg_mode = 'color'
+    used_footage = False
+    footage_candidates = _collect_footage(footage_dir, footage_glob)
+    if footage_candidates:
+        footage_path = random.choice(footage_candidates)
+        rc = _make_footage_bg(ffmpeg_bin, footage_path, tmp_bg, final_dur)
+        used_footage = rc == 0
+        if used_footage:
+            bg_mode = 'footage'
+    else:
+        rc = 1
+
+    if not used_footage and sd_bg_cmd and _sd_make_image(sd_bg_cmd, prompt=script_text, out_path=sd_img):
         used_sd = True
         rc = _ken_burns(ffmpeg_bin, sd_img, tmp_bg, final_dur)
-    else:
+        if rc == 0:
+            bg_mode = 'sd'
+    if rc != 0 and not used_footage:
+        rc = _make_fractal_bg(ffmpeg_bin, tmp_bg, final_dur)
+        if rc == 0:
+            bg_mode = 'fractal'
+    if rc != 0:
         rc = _make_bg_video(ffmpeg_bin, tmp_bg, final_dur)
+        if rc == 0:
+            bg_mode = 'color'
     if rc != 0:
         return {'ok': False, 'error': 'bg_video_failed'}
 
@@ -197,15 +316,25 @@ def generate_short(
             return {'ok': False, 'error': 'text_burn_failed'}
 
     # TTS or silence
+    tts_source = None
     did_tts = synthesize_with_command(tts_cmd, script_text, out_wav, piper_bin=piper_bin, piper_voice=tts_voice)
-    if not did_tts:
+    if did_tts:
+        tts_source = 'custom_cmd'
+    else:
         did_tts = synthesize_with_piper(piper_bin, tts_voice, script_text, out_wav)
+        if did_tts:
+            tts_source = 'piper'
     if not did_tts:
-        _make_silence(ffmpeg_bin, out_wav, final_dur)
+        if _make_flite_voice(ffmpeg_bin, script_text, out_wav, fallback_tts_voice) == 0:
+            did_tts = True
+            tts_source = 'flite'
+        else:
+            _make_silence(ffmpeg_bin, out_wav, final_dur)
+            tts_source = 'silence'
 
     # Mux
     music = _find_music(music_dir, music_glob)
-    rc = _mux_audio(ffmpeg_bin, tmp_txt, out_wav, out_mp4, music, music_vol_db)
+    rc = _mux_audio(ffmpeg_bin, tmp_txt, out_wav, out_mp4, music, music_vol_db, final_dur)
     if rc != 0:
         return {'ok': False, 'error': 'mux_failed'}
 
@@ -223,4 +352,6 @@ def generate_short(
         'duration_sec': final_dur,
         'tts': did_tts,
         'sd_bg': used_sd,
+        'bg_source': bg_mode,
+        'tts_source': tts_source,
     }

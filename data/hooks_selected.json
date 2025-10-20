@@ -2,9 +2,9 @@
   "Life hacks": [
     {
       "topic": "Life hacks",
-      "raw_text": "Stop doing this if you care about Life hacks",
+      "raw_text": "The fastest way to improve at Life hacks",
       "source_url": null,
-      "score": 0.6396021490668312,
+      "score": 0.6708203932499369,
       "emotion": null,
       "duration": 5.0,
       "source": "synthetic",
@@ -12,9 +12,9 @@
     },
     {
       "topic": "Life hacks",
-      "raw_text": "Stop doing this if you care about Life hacks",
+      "raw_text": "The fastest way to improve at Life hacks",
       "source_url": null,
-      "score": 0.6396021490668312,
+      "score": 0.6708203932499369,
       "emotion": null,
       "duration": 5.0,
       "source": "synthetic",
@@ -22,9 +22,9 @@
     },
     {
       "topic": "Life hacks",
-      "raw_text": "New study just broke Life hacks",
+      "raw_text": "The fastest way to improve at Life hacks",
       "source_url": null,
-      "score": 0.5773502691896258,
+      "score": 0.6708203932499369,
       "emotion": null,
       "duration": 5.0,
       "source": "synthetic",
@@ -32,9 +32,9 @@
     },
     {
       "topic": "Life hacks",
-      "raw_text": "New study just broke Life hacks",
+      "raw_text": "The fastest way to improve at Life hacks",
       "source_url": null,
-      "score": 0.5773502691896258,
+      "score": 0.6708203932499369,
       "emotion": null,
       "duration": 5.0,
       "source": "synthetic",
@@ -42,19 +42,9 @@
     },
     {
       "topic": "Life hacks",
-      "raw_text": "This Life hacks hack changes everything",
+      "raw_text": "The fastest way to improve at Life hacks",
       "source_url": null,
-      "score": 0.5773502691896258,
-      "emotion": null,
-      "duration": 5.0,
-      "source": "synthetic",
-      "topic_tags": []
-    },
-    {
-      "topic": "Life hacks",
-      "raw_text": "New study just broke Life hacks",
-      "source_url": null,
-      "score": 0.5773502691896258,
+      "score": 0.6708203932499369,
       "emotion": null,
       "duration": 5.0,
       "source": "synthetic",
@@ -82,9 +72,29 @@
     },
     {
       "topic": "Life hacks",
-      "raw_text": "This Life hacks hack changes everything",
+      "raw_text": "New study just broke Life hacks",
       "source_url": null,
       "score": 0.5773502691896258,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Life hacks",
+      "raw_text": "Most people get Life hacks wrong. Here's why",
+      "source_url": null,
+      "score": 0.4999999999999999,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Life hacks",
+      "raw_text": "Most people get Life hacks wrong. Here's why",
+      "source_url": null,
+      "score": 0.4999999999999999,
       "emotion": null,
       "duration": 5.0,
       "source": "synthetic",
@@ -112,17 +122,7 @@
     },
     {
       "topic": "Life hacks",
-      "raw_text": "The truth about Life hacks in 5 seconds",
-      "source_url": null,
-      "score": 0.4999999999999999,
-      "emotion": null,
-      "duration": 5.0,
-      "source": "synthetic",
-      "topic_tags": []
-    },
-    {
-      "topic": "Life hacks",
-      "raw_text": "The fastest way to improve at Life hacks",
+      "raw_text": "No one told you this about Life hacks",
       "source_url": null,
       "score": 0.4999999999999999,
       "emotion": null,
@@ -142,7 +142,17 @@
     },
     {
       "topic": "Life hacks",
-      "raw_text": "The fastest way to improve at Life hacks",
+      "raw_text": "No one told you this about Life hacks",
+      "source_url": null,
+      "score": 0.4999999999999999,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Life hacks",
+      "raw_text": "Most people get Life hacks wrong. Here's why",
       "source_url": null,
       "score": 0.4999999999999999,
       "emotion": null,
@@ -162,7 +172,153 @@
     },
     {
       "topic": "Life hacks",
-      "raw_text": "No one told you this about Life hacks",
+      "raw_text": "Stop doing this if you care about Life hacks",
+      "source_url": null,
+      "score": 0.4714045207910316,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Life hacks",
+      "raw_text": "I tested 100+ Life hacks tips so you don't have to",
+      "source_url": null,
+      "score": 0.42640143271122083,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Life hacks",
+      "raw_text": "I tested 100+ Life hacks tips so you don't have to",
+      "source_url": null,
+      "score": 0.42640143271122083,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    }
+  ],
+  "Motivation": [
+    {
+      "topic": "Motivation",
+      "raw_text": "This Motivation hack changes everything",
+      "source_url": null,
+      "score": 0.4472135954999579,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Motivation",
+      "raw_text": "New study just broke Motivation",
+      "source_url": null,
+      "score": 0.4472135954999579,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Motivation",
+      "raw_text": "New study just broke Motivation",
+      "source_url": null,
+      "score": 0.4472135954999579,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Motivation",
+      "raw_text": "The truth about Motivation in 5 seconds",
+      "source_url": null,
+      "score": 0.3779644730092272,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Motivation",
+      "raw_text": "The fastest way to improve at Motivation",
+      "source_url": null,
+      "score": 0.3779644730092272,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    }
+  ],
+  "Crypto trends": [
+    {
+      "topic": "Crypto trends",
+      "raw_text": "This Crypto trends hack changes everything",
+      "source_url": null,
+      "score": 0.5773502691896258,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Crypto trends",
+      "raw_text": "New study just broke Crypto trends",
+      "source_url": null,
+      "score": 0.5773502691896258,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Crypto trends",
+      "raw_text": "This Crypto trends hack changes everything",
+      "source_url": null,
+      "score": 0.5773502691896258,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Crypto trends",
+      "raw_text": "New study just broke Crypto trends",
+      "source_url": null,
+      "score": 0.5773502691896258,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Crypto trends",
+      "raw_text": "This Crypto trends hack changes everything",
+      "source_url": null,
+      "score": 0.5773502691896258,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    }
+  ],
+  "Fitness myths": [
+    {
+      "topic": "Fitness myths",
+      "raw_text": "New study just broke Fitness myths",
+      "source_url": null,
+      "score": 0.5773502691896258,
+      "emotion": null,
+      "duration": 5.0,
+      "source": "synthetic",
+      "topic_tags": []
+    },
+    {
+      "topic": "Fitness myths",
+      "raw_text": "The truth about Fitness myths in 5 seconds",
       "source_url": null,
       "score": 0.4999999999999999,
       "emotion": null,
@@ -171,8 +327,8 @@
       "topic_tags": []
     },
     {
-      "topic": "Life hacks",
-      "raw_text": "The truth about Life hacks in 5 seconds",
+      "topic": "Fitness myths",
+      "raw_text": "Most people get Fitness myths wrong. Here's why",
       "source_url": null,
       "score": 0.4999999999999999,
       "emotion": null,
@@ -181,8 +337,8 @@
       "topic_tags": []
     },
     {
-      "topic": "Life hacks",
-      "raw_text": "The fastest way to improve at Life hacks",
+      "topic": "Fitness myths",
+      "raw_text": "No one told you this about Fitness myths",
       "source_url": null,
       "score": 0.4999999999999999,
       "emotion": null,
@@ -191,14 +347,82 @@
       "topic_tags": []
     },
     {
-      "topic": "Life hacks",
-      "raw_text": "No one told you this about Life hacks",
+      "topic": "Fitness myths",
+      "raw_text": "Most people get Fitness myths wrong. Here's why",
       "source_url": null,
       "score": 0.4999999999999999,
       "emotion": null,
       "duration": 5.0,
       "source": "synthetic",
       "topic_tags": []
+    }
+  ],
+  "AI productivity": [
+    {
+      "topic": "AI productivity",
+      "raw_text": "I replaced morning news with birdsong and profits followed",
+      "source_url": null,
+      "score": 0.42640143271122083,
+      "emotion": "Awe",
+      "duration": 4.5,
+      "source": "mind_reset",
+      "topic_tags": [
+        "mindfulness",
+        "productivity"
+      ]
+    },
+    {
+      "topic": "AI productivity",
+      "raw_text": "This AI side hustle prints cash while you sleep",
+      "source_url": null,
+      "score": 0.2357022603955158,
+      "emotion": "Greed",
+      "duration": 4.5,
+      "source": "curated_short_feed",
+      "topic_tags": [
+        "ai",
+        "side hustle",
+        "automation"
+      ]
+    },
+    {
+      "topic": "AI productivity",
+      "raw_text": "Most millionaires did this before breakfast today",
+      "source_url": null,
+      "score": 0.0,
+      "emotion": "Status",
+      "duration": 4.4,
+      "source": "wealth_wire",
+      "topic_tags": [
+        "habits",
+        "success"
+      ]
+    },
+    {
+      "topic": "AI productivity",
+      "raw_text": "Hollywood coaches practice this posture reset daily",
+      "source_url": null,
+      "score": 0.0,
+      "emotion": "Status",
+      "duration": 4.3,
+      "source": "wellness_wave",
+      "topic_tags": [
+        "posture",
+        "health"
+      ]
+    },
+    {
+      "topic": "AI productivity",
+      "raw_text": "He replicates billionaire mornings with a thrift haul",
+      "source_url": null,
+      "score": 0.0,
+      "emotion": "Humor",
+      "duration": 4.7,
+      "source": "hustle_sketch",
+      "topic_tags": [
+        "humor",
+        "wealth"
+      ]
     }
   ]
 }
