@@ -114,6 +114,7 @@ def main() -> None:
             cfg.data_dir,
             fin['script_text'],
             fin['duration_sec'],
+            topic=current_topic,
             segments=fin.get('segments'),
             tts_cmd=cfg.tts_cmd,
             music_dir=cfg.music_dir,
@@ -123,6 +124,7 @@ def main() -> None:
             sd_thumb_cmd=cfg.sd_thumb_cmd,
             footage_dir=cfg.footage_dir,
             footage_glob=cfg.footage_glob,
+            footage_index=cfg.footage_index,
             fallback_tts_voice=cfg.fallback_tts_voice,
         )
         if not gen.get('ok'):

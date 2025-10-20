@@ -31,6 +31,7 @@ Operational Notes
 - To enable uploads, point `YOUTUBE_UPLOADER_CMD` at your uploader CLI (see `.env.example`). The bot automatically respects privacy/category flags and exponential backoff if the command fails.
 - If you want to retry uploads manually, run `python3 tools/youtube_uploader.py --file <mp4> --thumb <png> --title "..."`
 - Drop vertical b-roll clips under `assets/footage/` (or adjust `FOOTAGE_DIR` / `FOOTAGE_GLOB`) to have renders crop, loop, and grade real footage. When no footage is available the generator falls back to animated fractal motion instead of static color blocks.
+- Tag clips in `assets/footage/index.json` (see example below) so segments pull the most relevant b-roll before falling back to generic motion.
 - Voiceovers now fall back to ffmpeg's flite voice (`FALLBACK_TTS_VOICE`) after checking your `TTS_CMD` or Piper config, so every short ships with narration before we ever consider silence.
 
 Key Env Vars
@@ -49,6 +50,7 @@ Key Env Vars
 - EMBEDDINGS_BACKEND / EMB_MODEL_DIR / EMB_BATCH / EMB_DEVICE / TOPK_HOOKS / SIM_THRESHOLD: embedding backend, asset dir, batch size, device preference, ranking parameters
 - MUSIC_DIR, BG_MUSIC_GLOB, BG_MUSIC_VOL_DB: background music folders, glob pattern, and target LUFS offset
 - FOOTAGE_DIR / FOOTAGE_GLOB: optional local b-roll directory/glob for vertical background footage
+- FOOTAGE_INDEX_PATH: optional JSON metadata file that maps clips to tags/topics for smarter b-roll matching
 - FALLBACK_TTS_VOICE: ffmpeg flite voice name to use when custom TTS is unavailable
 - MINER_CACHE_TTL_SEC / MINER_RATE_PER_KEY_SEC / MINER_SOURCE_GLOB: hook miner controls (cache + rate limit)
 - ANALYTICS_CMD: analytics CLI (default `python3 tools/analytics_puller.py --since 2d --out data/metrics_latest.json`)
@@ -63,6 +65,8 @@ Data Layout
 - `assets/bias.json` — emotion/ngram weights updated by analytics
 - `assets/sources/` — drop your local scrapes here (miners read these)
 - `assets/music/` — optional background music files
+- `assets/footage/` — optional vertical b-roll library scanned for clips
+- `assets/footage/index.json` — optional tag/weight metadata for b-roll selection
 - `llm_runner.py` — local hook mutator CLI
 - `tools/youtube_uploader.py` — resumable upload helper (OAuth required)
 - `tools/analytics_puller.py` — metrics fetcher (YT Analytics API)
@@ -78,6 +82,35 @@ Notes
 - Scheduler defaults to Cairo timezone; adjust cadence in `schedule_manager/scheduler.py` if needed.
 - Run `python3 tools/youtube_uploader.py --help` after placing OAuth secrets in `./credentials/client_secret.json`; tokens cache to `./credentials/token.json`.
 - Run `python3 tools/analytics_puller.py --help` to confirm metrics fetch works; update `ANALYTICS_CMD` if you change arguments.
+
+### B-Roll Index Format
+
+Create `assets/footage/index.json` to steer how clips map to topics or keywords. Two supported shapes:
+
+```json5
+{
+  "clips": [
+    {"path": "ai/keyboard_closeup.mp4", "tags": ["ai", "workflow", "typing"], "weight": 1.2},
+    {"path": "productivity/whiteboard.mp4", "tags": ["productivity", "planning"]}
+  ]
+}
+```
+
+Or group entries by tag key:
+
+```json5
+{
+  "ai": [
+    {"path": "ai/robot-arm.mp4"},
+    {"path": "ai/desk-macro.mp4", "weight": 1.5}
+  ],
+  "default": [
+    {"path": "generic/city-timelapse.mp4"}
+  ]
+}
+```
+
+Relative paths are resolved against `FOOTAGE_DIR` (or the index file). When the index is missing the bot still scans `FOOTAGE_DIR` / `FOOTAGE_GLOB` and randomly cycles through any footage before falling back to fractal motion.
 
 Go-Live Checklist
 - Hook sources live under `assets/sources/` (`shorts_hooks.ndjson`, `shorts_hooks.json`) and feed the miner immediately.

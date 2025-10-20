@@ -47,6 +47,7 @@ class Config:
     analytics_cmd: Optional[str]
     footage_dir: Optional[str]
     footage_glob: Optional[str]
+    footage_index: Optional[str]
     fallback_tts_voice: Optional[str]
 
     def ensure_dirs(self) -> None:
@@ -110,6 +111,7 @@ def load_config() -> Config:
         analytics_cmd=(os.getenv('ANALYTICS_CMD') or '').strip() or None,
         footage_dir=(os.getenv('FOOTAGE_DIR') or '').strip() or None,
         footage_glob=(os.getenv('FOOTAGE_GLOB') or '').strip() or None,
+        footage_index=(os.getenv('FOOTAGE_INDEX_PATH') or '').strip() or None,
         fallback_tts_voice=(os.getenv('FALLBACK_TTS_VOICE') or 'slt').strip() or None,
     )
     cfg.ensure_dirs()

@@ -5,6 +5,7 @@ import subprocess
 from typing import Dict, List, Optional
 
 from utils import ensure_dir, run_ffmpeg, synthesize_with_piper, synthesize_with_command, log
+from .broll import load_broll_library, pick_broll_sequence
 
 
 def _escape_text(text: str) -> str:
@@ -43,25 +44,6 @@ def _segment_text_filters(segments: List[Dict], safe_top: int = 200) -> str:
                 f"box=1:boxcolor=black@0.3:boxborderw=20:shadowcolor=black:shadowx=2:shadowy=2:enable='{enable}'"
             )
     return ','.join(filters)
-
-
-def _collect_footage(footage_dir: Optional[str], footage_glob: Optional[str]) -> List[str]:
-    candidates: List[str] = []
-    if footage_glob:
-        candidates.extend(glob.glob(os.path.expandvars(footage_glob), recursive=True))
-    if footage_dir and os.path.isdir(footage_dir):
-        for root, _dirs, files in os.walk(footage_dir):
-            for fn in files:
-                if fn.lower().endswith(('.mp4', '.mov', '.mkv', '.webm', '.m4v')):
-                    candidates.append(os.path.join(root, fn))
-    dedup = []
-    seen = set()
-    for path in candidates:
-        rp = os.path.realpath(path)
-        if rp not in seen and os.path.isfile(rp):
-            dedup.append(rp)
-            seen.add(rp)
-    return dedup
 
 
 def _make_footage_bg(ffmpeg_bin: str, source_path: str, out_path: str, duration: float) -> int:
@@ -104,6 +86,59 @@ def _make_fractal_bg(ffmpeg_bin: str, out_path: str, duration: float) -> int:
         out_path,
     ]
     return run_ffmpeg(ffmpeg_bin, args)
+
+
+def _prep_broll_clip(ffmpeg_bin: str, source_path: str, out_path: str, duration: float) -> int:
+    vf = (
+        "scale=1080:1920:force_original_aspect_ratio=cover,"
+        "crop=1080:1920,"
+        "setsar=1:1,"
+        "fps=30,"
+        "eq=saturation=1.15:contrast=1.05"
+    )
+    args = [
+        '-stream_loop', '-1',
+        '-i', source_path,
+        '-vf', vf,
+        '-an',
+        '-t', f'{duration:.2f}',
+        '-preset', 'veryfast',
+        '-crf', '18',
+        '-c:v', 'libx264',
+        '-pix_fmt', 'yuv420p',
+        '-r', '30',
+        out_path,
+    ]
+    return run_ffmpeg(ffmpeg_bin, args)
+
+
+def _render_broll_sequence(
+    ffmpeg_bin: str,
+    selections: List[Dict],
+    tmp_bg: str,
+    data_dir: str,
+    base: str,
+) -> int:
+    prepped: List[str] = []
+    for idx, sel in enumerate(selections):
+        clip_out = os.path.join(data_dir, 'video', f'{base}_broll_{idx}.mp4')
+        rc = _prep_broll_clip(ffmpeg_bin, sel['path'], clip_out, sel['duration'])
+        if rc != 0:
+            return rc
+        prepped.append(clip_out)
+
+    concat_path = os.path.join(data_dir, 'video', f'{base}_broll_concat.txt')
+    with open(concat_path, 'w', encoding='utf-8') as fh:
+        for clip in prepped:
+            fh.write(f"file '{clip}'\n")
+
+    return run_ffmpeg(ffmpeg_bin, [
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', concat_path,
+        '-c', 'copy',
+        tmp_bg,
+    ])
 
 
 def _make_bg_video(ffmpeg_bin: str, out_path: str, duration: float) -> int:
@@ -252,6 +287,7 @@ def generate_short(
     script_text: str,
     duration_sec: float,
     *,
+    topic: Optional[str] = None,
     segments: Optional[List[Dict]] = None,
     tts_cmd: Optional[str] = None,
     music_dir: Optional[str] = None,
@@ -261,6 +297,7 @@ def generate_short(
     sd_thumb_cmd: Optional[str] = None,
     footage_dir: Optional[str] = None,
     footage_glob: Optional[str] = None,
+    footage_index: Optional[str] = None,
     fallback_tts_voice: Optional[str] = 'slt',
 ) -> Dict:
     ensure_dir(os.path.join(data_dir, 'video'))
@@ -274,28 +311,45 @@ def generate_short(
     out_wav = os.path.join(data_dir, 'audio', f'{base}.wav')
     out_png = os.path.join(data_dir, 'thumbs', f'{base}.png')
 
-    # Background preference: user footage → SD → fractal → animated color
+    # Background preference: curated b-roll → SD → fractal → animated color
     final_dur = max(7.0, min(15.0, duration_sec))
+    segs = segments or [{'text': script_text, 'start': 0.0, 'end': final_dur}]
     sd_img = os.path.join(data_dir, 'video', f'{base}_bg.png')
     used_sd = False
     bg_mode = 'color'
-    used_footage = False
-    footage_candidates = _collect_footage(footage_dir, footage_glob)
-    if footage_candidates:
-        footage_path = random.choice(footage_candidates)
-        rc = _make_footage_bg(ffmpeg_bin, footage_path, tmp_bg, final_dur)
-        used_footage = rc == 0
-        if used_footage:
-            bg_mode = 'footage'
-    else:
-        rc = 1
+    rc = 1
 
-    if not used_footage and sd_bg_cmd and _sd_make_image(sd_bg_cmd, prompt=script_text, out_path=sd_img):
+    broll_library = load_broll_library(footage_dir, footage_glob, footage_index)
+    selections = pick_broll_sequence(broll_library, topic, script_text, segs)
+    used_broll = False
+
+    if selections:
+        rc = _render_broll_sequence(ffmpeg_bin, selections, tmp_bg, data_dir, base)
+        if rc == 0:
+            used_broll = True
+            bg_mode = 'broll'
+        else:
+            log(f"B-roll render failed (rc={rc}); falling back to synthetic backgrounds.")
+
+    if not used_broll:
+        clip_pool = [clip['path'] for clip in (broll_library.get('clips') or [])]
+        if clip_pool:
+            fallback_clip = random.choice(clip_pool)
+            rc = _make_footage_bg(ffmpeg_bin, fallback_clip, tmp_bg, final_dur)
+            if rc == 0:
+                used_broll = True
+                bg_mode = 'footage'
+            else:
+                log(f"Footage fallback failed for {fallback_clip}; trying synthetic backgrounds.")
+        else:
+            rc = 1
+
+    if not used_broll and sd_bg_cmd and _sd_make_image(sd_bg_cmd, prompt=script_text, out_path=sd_img):
         used_sd = True
         rc = _ken_burns(ffmpeg_bin, sd_img, tmp_bg, final_dur)
         if rc == 0:
             bg_mode = 'sd'
-    if rc != 0 and not used_footage:
+    if rc != 0 and not used_broll:
         rc = _make_fractal_bg(ffmpeg_bin, tmp_bg, final_dur)
         if rc == 0:
             bg_mode = 'fractal'
@@ -307,7 +361,6 @@ def generate_short(
         return {'ok': False, 'error': 'bg_video_failed'}
 
     # Text overlay video (segment-aware with safe area)
-    segs = segments or [{'text': script_text, 'start': 0.0, 'end': final_dur}]
     rc = _burn_segments(ffmpeg_bin, tmp_bg, segs, tmp_txt)
     if rc != 0:
         # Fallback to simple overlay if segmented captions fail
@@ -352,6 +405,7 @@ def generate_short(
         'duration_sec': final_dur,
         'tts': did_tts,
         'sd_bg': used_sd,
+        'broll': used_broll,
         'bg_source': bg_mode,
         'tts_source': tts_source,
     }

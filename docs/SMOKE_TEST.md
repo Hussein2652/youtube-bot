@@ -10,6 +10,7 @@ Follow this checklist before letting the scheduler run unattended.
    - Drop fresh hooks into `assets/sources/shorts_hooks.ndjson` / `.json` (see schema in README).
    - Add at least a few MP3 tracks under `assets/music/`.
    - (Optional) Place vertical b-roll clips under `assets/footage/` so renders can feature real motion backgrounds.
+   - (Optional) Tag those clips in `assets/footage/index.json` for smarter topic → b-roll matching.
    - Put an ONNX sentence embedding model under `models/embeddings/e5-small/`.
 
 3. **Authenticate YouTube (one-time)**
