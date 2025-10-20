@@ -112,6 +112,22 @@ Or group entries by tag key:
 
 Relative paths are resolved against `FOOTAGE_DIR` (or the index file). When the index is missing the bot still scans `FOOTAGE_DIR` / `FOOTAGE_GLOB` and randomly cycles through any footage before falling back to fractal motion.
 
+### New: Trend→Hook→Video pipeline
+
+1. Configure regions, sources, and hook banks in `.env`:
+   ```
+   TREND_REGIONS=US,GB
+   TREND_SOURCES=google_trends,youtube_trending
+   HOOK_PROVIDER_URLS=https://your-hook-bank/3s.jsonl,https://your-hook-bank/5s.csv
+   ```
+2. Run the orchestrator once to test the flow:
+   ```
+   python3 pipeline_trend_to_video.py
+   ```
+3. Inspect outputs under `data/video/` and `data/scripts/title.txt`.
+
+**Quality ladder:** `video_gen.pipeline` tries AnimateDiff via ComfyUI first, then CogVideoX (placeholder hook), then a stock+FX ffmpeg compositor so the pipeline always returns a usable short even if the heavy engines are offline.
+
 Go-Live Checklist
 - Hook sources live under `assets/sources/` (`shorts_hooks.ndjson`, `shorts_hooks.json`) and feed the miner immediately.
 - Drop your ONNX embedding assets in `/models/embeddings/e5-small/` (see `.env.example` keys `EMB_MODEL_DIR`, `EMB_BATCH`, `EMB_DEVICE`, `TOPK_HOOKS`, `SIM_THRESHOLD`).
