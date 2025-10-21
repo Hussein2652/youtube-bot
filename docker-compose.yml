@@ -14,7 +14,7 @@ services:
     depends_on:
       - vllm
       - auto1111
-    restart: unless-stopped
+    restart: "no"
 
   vllm:
     image: vllm/vllm-openai:latest
@@ -31,7 +31,7 @@ services:
             - capabilities: [gpu]
     volumes:
       - ~/.cache/huggingface:/root/.cache/huggingface
-    restart: unless-stopped
+    restart: "no"
 
   auto1111:
     image: sdwebui/stable-diffusion-webui:latest
@@ -51,7 +51,7 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    restart: unless-stopped
+    restart: "no"
 
 networks:
   default:
